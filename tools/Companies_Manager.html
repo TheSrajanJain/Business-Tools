@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Companies Manager — Srajan Jain &amp; Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ============================ THEME TOKENS ============================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg-0:#03050b;
+  --bg-1:#0a0f2a;
+  --glass:rgba(18,28,45,.65);
+  --glass-2:rgba(10,20,35,.72);
+  --glass-3:rgba(0,0,0,.35);
+  --border:rgba(59,130,246,.28);
+  --border-soft:rgba(255,255,255,.09);
+  --text:#eef2ff;
+  --text-dim:#93a3bd;
+  --text-mute:#64748b;
+  --accent:#3b82f6;
+  --accent-2:#8b5cf6;
+  --success:#22c55e;
+  --danger:#ef4444;
+  --warn:#f59e0b;
+  --shadow-lg:0 25px 50px -12px rgba(0,0,0,.7);
+  --shadow-sm:0 8px 20px -8px rgba(0,0,0,.6);
+  --radius-lg:28px;
+  --radius-md:18px;
+  --radius-sm:12px;
+  --orb-1:rgba(59,130,246,.22);
+  --orb-2:rgba(139,92,246,.16);
+  --input-bg:rgba(0,0,0,.42);
+}
+
+[data-theme="light"]{
+  --bg-0:#eef2f9;
+  --bg-1:#dbe4f3;
+  --glass:rgba(255,255,255,.78);
+  --glass-2:rgba(255,255,255,.65);
+  --glass-3:rgba(255,255,255,.55);
+  --border:rgba(59,130,246,.28);
+  --border-soft:rgba(15,23,42,.08);
+  --text:#0f172a;
+  --text-dim:#4b5b73;
+  --text-mute:#8494ab;
+  --shadow-lg:0 25px 50px -18px rgba(15,23,42,.25);
+  --shadow-sm:0 8px 20px -10px rgba(15,23,42,.28);
+  --orb-1:rgba(59,130,246,.20);
+  --orb-2:rgba(139,92,246,.14);
+  --input-bg:rgba(255,255,255,.85);
+}
+
+html,body{height:100%}
+body{
+  min-height:100vh;
+  background:radial-gradient(ellipse at 20% 20%, var(--bg-1), var(--bg-0) 70%);
+  color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  overflow:hidden;
+  position:relative;
+  transition:background .4s ease,color .3s ease;
+}
+
+/* Ambient orbs */
+body::before,body::after{
+  content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+  transition:background .5s ease;
+}
+body::before{
+  width:420px;height:420px;top:-180px;left:-160px;
+  background:radial-gradient(circle,var(--orb-1),transparent 70%);
+  animation:float1 18s ease-in-out infinite;
+}
+body::after{
+  width:560px;height:560px;bottom:-240px;right:-200px;
+  background:radial-gradient(circle,var(--orb-2),transparent 70%);
+  animation:float2 22s ease-in-out infinite;
+}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-70px,-50px)}}
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent),var(--accent-2));border-radius:20px;border:2px solid transparent;background-clip:content-box}
+
+/* ============================ LAYOUT ============================ */
+.app{display:flex;height:100vh;position:relative;z-index:2}
+
+.sidebar{
+  width:296px;flex-shrink:0;
+  background:var(--glass-2);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border-right:1px solid var(--border);
+  padding:24px 18px;
+  display:flex;flex-direction:column;gap:8px;
+  box-shadow:8px 0 40px rgba(0,0,0,.35);
+  overflow-y:auto;
+  transition:background .3s ease;
+}
+
+.logo{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:18px;padding:0 6px;
+  font-size:1.5rem;font-weight:800;letter-spacing:-.5px;
+  background:linear-gradient(135deg,var(--text),#93c5fd 80%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+[data-theme="light"] .logo{background:linear-gradient(135deg,#1d4ed8,#7c3aed);-webkit-background-clip:text;background-clip:text}
+.logo i{color:var(--accent);-webkit-text-fill-color:var(--accent)}
+
+.folder-panel{
+  background:var(--glass-3);
+  border-radius:var(--radius-md);
+  padding:14px;
+  border:1px solid var(--border);
+  margin-bottom:14px;
+}
+
+.folder-status{
+  font-size:.75rem;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+  background:var(--glass-3);
+  padding:9px 12px;border-radius:40px;
+  word-break:break-all;line-height:1.3;
+  border:1px solid var(--border-soft);
+}
+.mode-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  padding:4px 10px;border-radius:20px;
+  background:linear-gradient(95deg,var(--accent),var(--accent-2));
+  color:#fff;margin-bottom:10px;
+}
+.mode-pill.local{background:linear-gradient(95deg,#f59e0b,#ef4444)}
+
+.sidebar-btn{
+  width:100%;
+  padding:11px 15px;
+  margin-bottom:8px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-soft);
+  border-radius:40px;
+  color:var(--text);
+  font-family:inherit;font-size:.86rem;font-weight:500;
+  display:flex;align-items:center;gap:13px;
+  cursor:pointer;
+  transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;
+  text-align:left;
+}
+.sidebar-btn i{width:20px;text-align:center;font-size:1rem;color:var(--accent)}
+.sidebar-btn:hover{background:rgba(59,130,246,.18);transform:translateX(4px);border-color:var(--border)}
+.sidebar-btn:active{transform:translateX(4px) scale(.98)}
+.sidebar-btn.active{
+  background:linear-gradient(95deg,var(--accent),#1e40af);
+  box-shadow:0 8px 22px -6px rgba(59,130,246,.65);
+  color:#fff;border-color:transparent;
+}
+.sidebar-btn.active i{color:#fff}
+
+/* Reconnect / forget special buttons */
+.sidebar-btn.reconnect{
+  background:linear-gradient(95deg,#f59e0b,#d97706);
+  color:#fff;border:none;
+  box-shadow:0 6px 18px -6px rgba(245,158,11,.75);
+  animation:pulseGlow 2.2s ease-in-out infinite;
+}
+.sidebar-btn.reconnect i{color:#fff}
+.sidebar-btn.reconnect:hover{filter:brightness(1.08)}
+@keyframes pulseGlow{
+  0%,100%{box-shadow:0 6px 18px -6px rgba(245,158,11,.6)}
+  50%{box-shadow:0 6px 26px -4px rgba(245,158,11,1)}
+}
+.sidebar-btn.danger-ghost{
+  background:transparent;color:var(--danger);
+  border:1px solid rgba(239,68,68,.35);
+}
+.sidebar-btn.danger-ghost i{color:var(--danger)}
+.sidebar-btn.danger-ghost:hover{background:rgba(239,68,68,.15);border-color:var(--danger)}
+
+.stats-badge{
+  background:linear-gradient(95deg,rgba(30,41,59,.8),rgba(15,23,42,.8));
+  border-radius:40px;padding:10px 12px;margin-top:10px;
+  text-align:center;font-size:.8rem;font-weight:600;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+[data-theme="light"] .stats-badge{background:linear-gradient(95deg,#e2e8f0,#f1f5f9)}
+.stats-badge i{color:var(--accent)}
+
+.divider{margin:14px 0;border-top:1px solid var(--border-soft)}
+.nav-label{font-size:.66rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-mute);padding:6px 12px;font-weight:700}
+
+.sidebar-footer{margin-top:auto;padding-top:14px}
+
+/* ============================ MAIN ============================ */
+.main{
+  flex:1;overflow-y:auto;padding:26px 30px 60px;
+  scroll-behavior:smooth;
+}
+
+.card{
+  width:100%;max-width:1440px;margin:0 auto 24px;
+  padding:30px 28px;
+  border-radius:var(--radius-lg);
+  background:var(--glass);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  box-shadow:var(--shadow-lg), 0 0 0 1px var(--border);
+  animation:fadeSlide .35s ease;
+  transition:background .3s ease;
+}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hidden-card{display:none !important}
+
+.card h2{
+  font-size:1.6rem;margin-bottom:22px;font-weight:700;letter-spacing:-.4px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.card h2 i{color:var(--accent)}
+.card h2 .sub{font-size:.78rem;font-weight:500;color:var(--text-dim);margin-left:auto}
+
+/* ============================ FORMS ============================ */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field > span{font-size:.74rem;font-weight:600;color:var(--text-dim);letter-spacing:.3px;padding-left:6px}
+.field .hint{font-size:.68rem;color:var(--text-mute);padding-left:6px}
+
+input,textarea,select{
+  width:100%;
+  padding:13px 17px;
+  border-radius:16px;
+  border:1px solid var(--border-soft);
+  background:var(--input-bg);
+  color:var(--text);
+  font-family:inherit;font-size:.9rem;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+textarea{resize:vertical;min-height:64px;border-radius:18px}
+input::placeholder,textarea::placeholder{color:var(--text-mute)}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(59,130,246,.22);
+}
+input.invalid,textarea.invalid{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.18)}
+select{cursor:pointer;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text-dim) 50%),linear-gradient(135deg,var(--text-dim) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:40px}
+
+.btn-group{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap}
+
+button{
+  font-family:inherit;
+  padding:12px 20px;
+  border-radius:40px;
+  border:none;
+  font-weight:600;font-size:.86rem;
+  cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  transition:transform .16s ease,filter .16s ease,background .2s ease,box-shadow .2s ease;
+  white-space:nowrap;
+}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.5;cursor:not-allowed}
+
+.btn-primary{background:linear-gradient(100deg,#22c55e,#15803d);color:#fff;box-shadow:0 6px 18px -6px rgba(34,197,94,.7)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-secondary{background:var(--glass-3);color:var(--text);border:1px solid var(--border-soft)}
+.btn-secondary:hover{background:rgba(59,130,246,.18);border-color:var(--border)}
+.btn-danger{background:linear-gradient(100deg,#ef4444,#b91c1c);color:#fff;box-shadow:0 6px 18px -6px rgba(239,68,68,.7)}
+.btn-danger:hover{filter:brightness(1.08)}
+.btn-accent{background:linear-gradient(100deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 6px 18px -6px rgba(59,130,246,.75)}
+.btn-accent:hover{filter:brightness(1.08)}
+.btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border-soft)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border);background:rgba(59,130,246,.12)}
+.btn-sm{padding:8px 14px;font-size:.76rem}
+.flex-1{flex:1}
+
+.icon-btn{
+  width:36px;height:36px;padding:0;border-radius:50%;
+  background:var(--glass-3);border:1px solid var(--border-soft);color:var(--text-dim);
+  display:grid;place-items:center;font-size:.9rem;
+}
+.icon-btn:hover{color:var(--text);background:rgba(59,130,246,.2);border-color:var(--border)}
+
+/* ============================ DASHBOARD ============================ */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:26px}
+.stat-card{
+  background:var(--glass-2);
+  border:1px solid var(--border);
+  border-radius:22px;padding:20px;
+  position:relative;overflow:hidden;
+  transition:transform .25s ease,box-shadow .25s ease;
+}
+.stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-sm)}
+.stat-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 100% 0%, rgba(59,130,246,.18), transparent 60%);
+  pointer-events:none;
+}
+.stat-card .stat-icon{
+  width:44px;height:44px;border-radius:14px;
+  display:grid;place-items:center;font-size:1.15rem;color:#fff;
+  margin-bottom:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+}
+.stat-card:nth-child(2) .stat-icon{background:linear-gradient(135deg,#22c55e,#15803d)}
+.stat-card:nth-child(3) .stat-icon{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.stat-card:nth-child(4) .stat-icon{background:linear-gradient(135deg,#ec4899,#be185d)}
+.stat-card .stat-value{font-size:2rem;font-weight:800;letter-spacing:-1px;line-height:1}
+.stat-card .stat-label{font-size:.76rem;color:var(--text-dim);margin-top:6px;font-weight:500}
+
+.panel{
+  background:var(--glass-2);
+  border:1px solid var(--border);
+  border-radius:22px;padding:20px;
+}
+.panel h4{font-size:.95rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.panel h4 i{color:var(--accent)}
+.dash-cols{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}
+
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:11px;font-size:.82rem}
+.bar-row .bar-name{width:110px;flex-shrink:0;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:9px;border-radius:20px;background:rgba(127,127,127,.18);overflow:hidden}
+.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .6s cubic-bezier(.2,.9,.3,1)}
+.bar-count{width:30px;text-align:right;font-weight:700;font-size:.78rem}
+
+.recent-item{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;
+  cursor:pointer;transition:background .18s;
+}
+.recent-item:hover{background:rgba(59,130,246,.12)}
+.recent-item .r-name{font-weight:600;font-size:.85rem}
+.recent-item .r-meta{font-size:.72rem;color:var(--text-mute)}
+
+/* ============================ DIRECTORY ============================ */
+.toolbar{
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  margin-bottom:18px;
+}
+.search-wrap{position:relative;flex:1;min-width:220px}
+.search-wrap i{position:absolute;left:17px;top:50%;transform:translateY(-50%);color:var(--text-mute);font-size:.85rem;pointer-events:none}
+.search-wrap input{padding-left:42px;margin:0}
+.kbd{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:.62rem;padding:3px 7px;border-radius:6px;font-weight:700;
+  background:var(--glass-3);border:1px solid var(--border-soft);color:var(--text-mute);
+}
+
+.view-toggle{display:flex;background:var(--glass-3);border-radius:40px;padding:4px;border:1px solid var(--border-soft)}
+.view-toggle button{background:transparent;padding:8px 14px;border-radius:40px;color:var(--text-dim);font-size:.8rem}
+.view-toggle button.active{background:linear-gradient(95deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 4px 12px -4px rgba(59,130,246,.8)}
+
+.bulk-bar{
+  display:none;align-items:center;gap:14px;flex-wrap:wrap;
+  background:linear-gradient(95deg,rgba(59,130,246,.18),rgba(139,92,246,.14));
+  border:1px solid var(--border);border-radius:18px;
+  padding:12px 18px;margin-bottom:16px;
+  animation:fadeSlide .25s ease;
+}
+.bulk-bar.show{display:flex}
+.bulk-bar .count{font-weight:700;font-size:.86rem}
+
+.company-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+  gap:20px;
+}
+
+.company-card{
+  --h:215;
+  background:var(--glass-2);
+  backdrop-filter:blur(10px);
+  border-radius:24px;
+  padding:20px;
+  border:1px solid var(--border-soft);
+  transition:transform .3s cubic-bezier(.2,.9,.4,1.1),border-color .3s,box-shadow .3s,background .3s;
+  position:relative;overflow:hidden;
+  animation:fadeSlide .3s ease backwards;
+}
+.company-card::before{
+  content:'';position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:radial-gradient(circle at 0% 0%, hsla(var(--h),85%,60%,.16), transparent 55%);
+}
+.company-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,hsl(var(--h),85%,60%),hsl(calc(var(--h) + 45),85%,62%));
+  opacity:0;transition:opacity .3s;
+}
+.company-card:hover{
+  transform:translateY(-6px);
+  border-color:hsl(var(--h),80%,60%);
+  box-shadow:0 22px 40px -18px rgba(0,0,0,.8);
+}
+.company-card:hover::after{opacity:1}
+.company-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.45)}
+
+.card-top{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px}
+.avatar{
+  width:46px;height:46px;flex-shrink:0;border-radius:15px;
+  display:grid;place-items:center;
+  font-weight:800;font-size:1rem;color:#fff;letter-spacing:-.5px;
+  background:linear-gradient(135deg,hsl(var(--h),80%,58%),hsl(calc(var(--h) + 40),80%,50%));
+  box-shadow:0 6px 16px -6px hsla(var(--h),80%,50%,.8);
+}
+.card-title-wrap{flex:1;min-width:0}
+.company-card h3{
+  font-size:1.08rem;font-weight:700;letter-spacing:-.3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.chip{
+  display:inline-block;font-size:.64rem;font-weight:700;letter-spacing:.4px;
+  padding:3px 9px;border-radius:20px;margin-top:5px;
+  background:hsla(var(--h),80%,55%,.18);
+  color:hsl(var(--h),75%,72%);
+  border:1px solid hsla(var(--h),80%,60%,.3);
+  text-transform:uppercase;
+}
+[data-theme="light"] .chip{color:hsl(var(--h),70%,35%)}
+
+.card-detail{
+  display:flex;align-items:flex-start;gap:10px;
+  margin:9px 0;font-size:.8rem;color:var(--text-dim);
+  word-break:break-word;line-height:1.45;
+}
+.card-detail i{width:16px;flex-shrink:0;color:hsl(var(--h),70%,62%);margin-top:3px;font-size:.78rem}
+.card-detail .val{flex:1;min-width:0}
+.copy-mini{
+  background:transparent;border:none;padding:2px 6px;color:var(--text-mute);
+  font-size:.7rem;border-radius:6px;cursor:pointer;
+}
+.copy-mini:hover{color:var(--accent);background:rgba(59,130,246,.14)}
+
+.card-actions{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft)}
+.card-actions button{
+  flex:1;padding:9px 0;font-size:.74rem;
+  background:var(--glass-3);border:1px solid var(--border-soft);color:var(--text-dim);
+  border-radius:12px;
+}
+.card-actions button:hover{color:#fff;background:var(--accent);border-color:transparent}
+.card-actions button[data-act="del"]:hover{background:var(--danger)}
+.card-actions button[data-act="view"]:hover{background:var(--accent-2)}
+
+.select-box{
+  position:absolute;top:14px;right:14px;z-index:3;
+  width:22px;height:22px;border-radius:7px;
+  display:grid;place-items:center;
+  background:var(--glass-3);border:1.5px solid var(--border-soft);
+  cursor:pointer;opacity:0;transition:opacity .2s,background .2s;
+}
+.company-card:hover .select-box,.company-card.selected .select-box{opacity:1}
+.company-card.selected .select-box{background:var(--accent);border-color:var(--accent)}
+.select-box input{display:none}
+.select-box i{font-size:.7rem;color:#fff;opacity:0}
+.company-card.selected .select-box i{opacity:1}
+
+/* list / table view */
+.table-wrap{overflow-x:auto;border-radius:18px;border:1px solid var(--border-soft)}
+table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:760px}
+thead th{
+  text-align:left;padding:14px 16px;font-weight:700;font-size:.7rem;
+  text-transform:uppercase;letter-spacing:.8px;color:var(--text-mute);
+  background:var(--glass-3);position:sticky;top:0;z-index:2;
+}
+tbody td{padding:13px 16px;border-top:1px solid var(--border-soft);vertical-align:middle}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:rgba(59,130,246,.09)}
+td .row-actions{display:flex;gap:6px}
+td .row-actions button{padding:7px 10px;font-size:.72rem;border-radius:10px;background:var(--glass-3);border:1px solid var(--border-soft);color:var(--text-dim)}
+td .row-actions button:hover{color:#fff;background:var(--accent);border-color:transparent}
+td .row-actions button[data-act="del"]:hover{background:var(--danger)}
+
+.empty-state{
+  grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--text-mute);
+}
+.empty-state i{font-size:3rem;margin-bottom:18px;opacity:.4;display:block;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.empty-state p{font-size:.92rem;margin-bottom:6px;color:var(--text-dim);font-weight:600}
+.empty-state small{font-size:.78rem}
+
+.result-count{font-size:.78rem;color:var(--text-dim);margin-bottom:14px;font-weight:500}
+.result-count b{color:var(--accent)}
+
+/* ============================ MODALS ============================ */
+#modalRoot{position:fixed;inset:0;z-index:1000;display:none}
+#modalRoot.open{display:block}
+.modal-backdrop{
+  position:absolute;inset:0;
+  background:rgba(2,6,18,.72);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:grid;place-items:center;padding:20px;
+  animation:fadeIn .2s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
+  background:linear-gradient(160deg,var(--glass),var(--glass-2));
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1px solid var(--border);
+  border-radius:26px;
+  box-shadow:0 40px 80px -20px rgba(0,0,0,.85);
+  animation:popIn .28s cubic-bezier(.2,.9,.4,1.2);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.94) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal.sm{max-width:420px}
+.modal.lg{max-width:680px}
+
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:22px 24px 16px;border-bottom:1px solid var(--border-soft);
+}
+.modal-head h3{font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.modal-head h3 i{color:var(--accent)}
+.modal-body{padding:22px 24px;font-size:.88rem;line-height:1.6;color:var(--text-dim)}
+.modal-foot{
+  display:flex;gap:12px;justify-content:flex-end;
+  padding:16px 24px 22px;border-top:1px solid var(--border-soft);
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.form-grid .span-2{grid-column:1/-1}
+
+.detail-list{display:flex;flex-direction:column;gap:2px}
+.detail-row{display:flex;gap:14px;padding:12px 0;border-bottom:1px dashed var(--border-soft)}
+.detail-row:last-child{border-bottom:none}
+.detail-row .k{width:130px;flex-shrink:0;font-size:.76rem;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;padding-top:2px}
+.detail-row .v{flex:1;color:var(--text);font-size:.88rem;word-break:break-word;white-space:pre-wrap}
+
+/* ============================ TOASTS ============================ */
+#toastWrap{
+  position:fixed;bottom:24px;right:24px;z-index:2000;
+  display:flex;flex-direction:column;gap:10px;align-items:flex-end;
+  pointer-events:none;
+}
+.toast{
+  pointer-events:auto;
+  display:flex;align-items:center;gap:12px;
+  background:var(--glass-2);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  padding:13px 20px;border-radius:50px;
+  border:1px solid var(--border-soft);
+  border-left:4px solid var(--success);
+  font-size:.84rem;font-weight:500;
+  box-shadow:0 14px 30px -10px rgba(0,0,0,.6);
+  animation:slideInRight .32s cubic-bezier(.2,.9,.4,1.2);
+  max-width:400px;
+}
+.toast.hide{animation:slideOutRight .3s ease forwards}
+@keyframes slideInRight{from{transform:translateX(90px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOutRight{to{transform:translateX(90px);opacity:0}}
+.toast i.lead{font-size:1rem;color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast.error i.lead{color:var(--danger)}
+.toast.warn{border-left-color:var(--warn)}
+.toast.warn i.lead{color:var(--warn)}
+.toast.info{border-left-color:var(--accent)}
+.toast.info i.lead{color:var(--accent)}
+.toast .undo-btn{
+  background:var(--accent);color:#fff;padding:6px 14px;font-size:.74rem;
+  border-radius:30px;margin-left:6px;
+}
+.toast .undo-btn:hover{filter:brightness(1.15)}
+
+/* ============================ MISC ============================ */
+.warning-note{
+  background:rgba(249,115,22,.1);
+  border-left:3px solid var(--warn);
+  padding:12px 16px;border-radius:14px;
+  font-size:.76rem;color:var(--text-dim);margin-top:18px;line-height:1.6;
+}
+.warning-note i{color:var(--warn);margin-right:6px}
+.warning-note strong{color:var(--text)}
+
+.data-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.action-tile{
+  background:var(--glass-2);border:1px solid var(--border-soft);border-radius:20px;
+  padding:20px;text-align:left;cursor:pointer;
+  transition:transform .22s ease,border-color .22s,background .22s;
+  display:flex;flex-direction:column;gap:8px;align-items:flex-start;
+  font-family:inherit;color:var(--text);
+}
+.action-tile:hover{transform:translateY(-4px);border-color:var(--border);background:rgba(59,130,246,.1)}
+.action-tile i{font-size:1.4rem;color:var(--accent)}
+.action-tile .t-title{font-weight:700;font-size:.9rem}
+.action-tile .t-desc{font-size:.74rem;color:var(--text-mute);line-height:1.5}
+
+@media (max-width:1000px){
+  .dash-cols{grid-template-columns:1fr}
+}
+@media (max-width:780px){
+  .sidebar{width:78px;padding:18px 10px;align-items:center}
+  .logo span,.sidebar-btn span,.nav-label,.folder-status,.stats-badge span,.mode-pill span,.sidebar-footer span{display:none}
+  .logo{justify-content:center;font-size:1.3rem}
+  .sidebar-btn{justify-content:center;padding:13px 0;gap:0}
+  .sidebar-btn i{font-size:1.2rem}
+  .folder-panel{padding:8px;width:100%}
+  .stats-badge{padding:9px 0}
+  .main{padding:18px 14px 50px}
+  .card{padding:22px 16px;border-radius:24px}
+  .form-grid{grid-template-columns:1fr}
+  .company-grid{grid-template-columns:1fr}
+  #toastWrap{left:14px;right:14px;bottom:14px;align-items:stretch}
+  .toast{max-width:none}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============================ SIDEBAR ============================ -->
+  <aside class="sidebar">
+    <div class="logo">
+      <i class="fas fa-folder-tree"></i><span>BizManager</span>
+    </div>
+
+    <div class="folder-panel">
+      <div class="mode-pill" id="modePill"><i class="fas fa-hdd"></i><span>Browser Storage</span></div>
+      <div class="folder-status" id="folderStatus">
+        <i class="fas fa-database"></i><span id="folderPathSpan">No folder</span>
+      </div>
+      <button id="reconnectBtn" class="sidebar-btn reconnect" style="display:none">
+        <i class="fas fa-plug"></i><span>Reconnect Folder</span>
+      </button>
+      <button id="selectFolderBtn" class="sidebar-btn"><i class="fas fa-folder-open"></i><span>Select Folder</span></button>
+      <button id="useBrowserBtn" class="sidebar-btn"><i class="fas fa-hard-drive"></i><span>Browser Storage</span></button>
+      <button id="refreshFolderBtn" class="sidebar-btn"><i class="fas fa-rotate"></i><span>Reload</span></button>
+      <button id="forgetFolderBtn" class="sidebar-btn danger-ghost" style="display:none">
+        <i class="fas fa-trash-can"></i><span>Forget Folder</span>
+      </button>
+      <div class="stats-badge">
+        <i class="fas fa-building"></i><span><b id="companyCount">0</b> companies</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="nav-label">Workspace</div>
+    <button class="sidebar-btn active" data-view="dashboard"><i class="fas fa-chart-pie"></i><span>Dashboard</span></button>
+    <button class="sidebar-btn" data-view="add"><i class="fas fa-circle-plus"></i><span>Add Company</span></button>
+    <button class="sidebar-btn" data-view="directory"><i class="fas fa-table-cells-large"></i><span>Directory</span></button>
+    <button class="sidebar-btn" data-view="data"><i class="fas fa-database"></i><span>Backup &amp; Data</span></button>
+
+    <div class="sidebar-footer">
+      <div class="divider"></div>
+      <button class="sidebar-btn" id="themeToggleBtn"><i class="fas fa-moon"></i><span>Light Mode</span></button>
+      <button class="sidebar-btn" id="shortcutsBtn"><i class="fas fa-keyboard"></i><span>Shortcuts</span></button>
+    </div>
+  </aside>
+
+  <!-- ============================ MAIN ============================ -->
+  <main class="main" id="mainScroll">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="view-dashboard" class="card">
+      <h2><i class="fas fa-chart-pie"></i> Dashboard <span class="sub" id="dashSub"></span></h2>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-building"></i></div>
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">Total companies</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-calendar-plus"></i></div>
+          <div class="stat-value" id="statMonth">0</div>
+          <div class="stat-label">Added this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+          <div class="stat-value" id="statCats">0</div>
+          <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-phone-volume"></i></div>
+          <div class="stat-value" id="statContacts">0</div>
+          <div class="stat-label">With phone number</div>
+        </div>
+      </div>
+
+      <div class="dash-cols">
+        <div class="panel">
+          <h4><i class="fas fa-chart-simple"></i> Companies by category</h4>
+          <div id="categoryBars"><div class="empty-state" style="padding:30px"><small>No data yet</small></div></div>
+        </div>
+        <div class="panel">
+          <h4><i class="fas fa-clock-rotate-left"></i> Recently added</h4>
+          <div id="recentList"><div class="empty-state" style="padding:30px"><small>No data yet</small></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADD ============ -->
+    <section id="view-add" class="card hidden-card">
+      <h2><i class="fas fa-circle-plus"></i> Register Company <span class="sub">Fields marked * are required</span></h2>
+
+      <form id="addForm" autocomplete="off">
+        <div class="form-grid">
+          <label class="field span-2"><span>Company name *</span>
+            <input type="text" name="name" id="addName" placeholder="e.g. Acme Industries Pvt Ltd" required>
+          </label>
+          <label class="field"><span>GSTIN *</span>
+            <input type="text" name="gstin" id="addGstin" placeholder="22AAAAA0000A1Z5" maxlength="15" style="text-transform:uppercase">
+            <span class="hint" id="gstinHint">15-character Indian GST number</span>
+          </label>
+          <label class="field"><span>Phone *</span>
+            <input type="tel" name="phone" id="addPhone" placeholder="9876543210">
+            <span class="hint">7–15 digits</span>
+          </label>
+          <label class="field span-2"><span>Full address *</span>
+            <textarea name="address" id="addAddress" rows="2" placeholder="Street, City, State, PIN"></textarea>
+          </label>
+          <label class="field"><span>Email</span>
+            <input type="email" name="email" id="addEmail" placeholder="contact@company.com">
+          </label>
+          <label class="field"><span>Contact person</span>
+            <input type="text" name="contact" id="addContact" placeholder="Ravi Kumar">
+          </label>
+          <label class="field"><span>Category</span>
+            <input type="text" name="category" id="addCategory" list="categoryList" placeholder="Manufacturing">
+            <datalist id="categoryList"></datalist>
+          </label>
+          <label class="field"><span>Notes</span>
+            <input type="text" name="notes" id="addNotes" placeholder="Optional remark">
+          </label>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn-primary flex-1"><i class="fas fa-floppy-disk"></i> Save Company</button>
+          <button type="reset" class="btn-secondary flex-1"><i class="fas fa-eraser"></i> Clear</button>
+        </div>
+      </form>
+
+      <div class="warning-note">
+        <i class="fas fa-circle-info"></i>
+        Each company is stored as <strong>CompanyName.txt</strong> (JSON) inside your chosen folder — or in
+        <strong>browser storage</strong> if no folder is selected. Filenames are automatically sanitised.
+      </div>
+    </section>
+
+    <!-- ============ DIRECTORY ============ -->
+    <section id="view-directory" class="card hidden-card">
+      <h2><i class="fas fa-table-cells-large"></i> Company Directory
+        <span class="sub"><span id="dirTotal">0</span> total</span>
+      </h2>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="directorySearch" placeholder="Search name, GSTIN, phone, city, category…">
+          <span class="kbd">Ctrl K</span>
+        </div>
+        <select id="sortSelect" style="width:auto;min-width:160px">
+          <option value="name-asc">Name A → Z</option>
+          <option value="name-desc">Name Z → A</option>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="updated">Recently updated</option>
+        </select>
+        <select id="categoryFilter" style="width:auto;min-width:150px">
+          <option value="">All categories</option>
+        </select>
+        <div class="view-toggle">
+          <button data-mode="grid" class="active" title="Grid view"><i class="fas fa-grip"></i></button>
+          <button data-mode="list" title="List view"><i class="fas fa-list"></i></button>
+        </div>
+      </div>
+
+      <div class="bulk-bar" id="bulkBar">
+        <i class="fas fa-check-double" style="color:var(--accent)"></i>
+        <span class="count"><b id="bulkCount">0</b> selected</span>
+        <button class="btn-ghost btn-sm" id="bulkSelectAll"><i class="fas fa-check"></i> Select all</button>
+        <button class="btn-ghost btn-sm" id="bulkClear"><i class="fas fa-xmark"></i> Clear</button>
+        <button class="btn-ghost btn-sm" id="bulkExport"><i class="fas fa-file-export"></i> Export selected</button>
+        <button class="btn-danger btn-sm" id="bulkDelete" style="margin-left:auto"><i class="fas fa-trash"></i> Delete selected</button>
+      </div>
+
+      <div id="resultCount" class="result-count"></div>
+      <div id="companiesGridContainer" class="company-grid"></div>
+    </section>
+
+    <!-- ============ DATA / BACKUP ============ -->
+    <section id="view-data" class="card hidden-card">
+      <h2><i class="fas fa-database"></i> Backup &amp; Data</h2>
+      <div class="data-actions">
+        <button class="action-tile" id="exportJsonBtn">
+          <i class="fas fa-file-code"></i>
+          <span class="t-title">Export JSON backup</span>
+          <span class="t-desc">Download every company as a single restorable JSON file.</span>
+        </button>
+        <button class="action-tile" id="exportCsvBtn">
+          <i class="fas fa-file-csv"></i>
+          <span class="t-title">Export CSV</span>
+          <span class="t-desc">Spreadsheet-friendly export of all company records.</span>
+        </button>
+        <button class="action-tile" id="importBtn">
+          <i class="fas fa-file-import"></i>
+          <span class="t-title">Restore / import</span>
+          <span class="t-desc">Import a JSON backup or individual .txt company files.</span>
+        </button>
+        <button class="action-tile" id="printBtn">
+          <i class="fas fa-print"></i>
+          <span class="t-title">Print directory</span>
+          <span class="t-desc">Open a printable list of all companies.</span>
+        </button>
+        <button class="action-tile" id="dedupeBtn">
+          <i class="fas fa-clone"></i>
+          <span class="t-title">Find duplicates</span>
+          <span class="t-desc">Detect companies sharing a name or GSTIN.</span>
+        </button>
+        <button class="action-tile" id="wipeBtn" style="border-color:rgba(239,68,68,.35)">
+          <i class="fas fa-triangle-exclamation" style="color:var(--danger)"></i>
+          <span class="t-title">Delete all data</span>
+          <span class="t-desc">Permanently remove every company record. Cannot be undone.</span>
+        </button>
+      </div>
+
+      <div class="warning-note">
+        <i class="fas fa-shield-halved"></i>
+        All data lives on your device. Folder mode uses the <strong>File System Access API</strong>
+        (Chrome / Edge / Opera). Browser storage mode works everywhere but is tied to this browser profile.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============================ MODAL ROOT ============================ -->
+<div id="modalRoot"></div>
+<div id="toastWrap"></div>
+
+<script>
+/* =====================================================================
+   BizManager Pro — application logic
+   ===================================================================== */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+const LS_KEY      = 'bizmanager.pro.companies.v2';
+const LS_THEME    = 'bizmanager.pro.theme';
+const LS_MODE     = 'bizmanager.pro.mode';
+
+/* IndexedDB for persistent FileSystemDirectoryHandle storage */
+const IDB_NAME    = 'bizmanager.pro';
+const IDB_VERSION = 1;
+const IDB_STORE   = 'handles';
+const IDB_KEY     = 'directoryHandle';
+
+/* ------------------------------ STATE ------------------------------ */
+let directoryHandle = null;
+let storageMode     = 'local';        // 'fs' | 'local'
+let companies       = [];
+let currentView     = 'dashboard';
+let viewMode        = 'grid';
+let sortMode        = 'name-asc';
+let categoryFilter  = '';
+let searchTerm      = '';
+let selectedIds     = new Set();
+let modalOnClose    = null;
+let folderPending   = false;          // true when a folder is remembered but permission must be re-granted
+
+/* ---------------------------- UTILITIES ---------------------------- */
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, m => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
+  ));
+}
+function sanitizeFilename(name){
+  return String(name).replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().substring(0, 180) || 'company';
+}
+function getFileNameFromCompany(c){ return sanitizeFilename(c.name) + '.txt'; }
+
+function hueFromString(s){
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+  return h;
+}
+function initials(name){
+  return String(name).trim().split(/\s+/).slice(0, 2).map(w => (w[0] || '').toUpperCase()).join('') || '?';
+}
+function formatDate(iso){
+  try {
+    const d = new Date(iso);
+    if (isNaN(d)) return '—';
+    return d.toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' });
+  } catch { return '—'; }
+}
+function isValidPhone(p){ return /^\d{7,15}$/.test(String(p).replace(/[\s\-()]/g, '')); }
+function isValidGstin(g){
+  return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(String(g).toUpperCase());
+}
+function normalizeCompany(raw){
+  if (!raw || typeof raw !== 'object') return null;
+  const name = String(raw.name || '').trim();
+  if (!name) return null;
+  const now = new Date().toISOString();
+  return {
+    id:       raw.id != null ? raw.id : (Date.now() + Math.floor(Math.random() * 10000)),
+    name,
+    gstin:    String(raw.gstin   || '').trim().toUpperCase(),
+    address:  String(raw.address || '').trim(),
+    phone:    String(raw.phone   || '').trim(),
+    email:    String(raw.email   || '').trim(),
+    contact:  String(raw.contact || '').trim(),
+    category: String(raw.category|| 'General').trim() || 'General',
+    notes:    String(raw.notes   || '').trim(),
+    createdAt: raw.createdAt || now,
+    updatedAt: raw.updatedAt || raw.createdAt || now
+  };
+}
+
+/* =====================================================================
+   INDEXEDDB — persistent storage for the FileSystemDirectoryHandle
+   (File handles can survive browser restarts, unlike localStorage.)
+   ===================================================================== */
+function idbOpen(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+async function idbSet(key, value){
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror    = () => { db.close(); reject(tx.error); };
+  });
+}
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => { db.close(); resolve(req.result); };
+    req.onerror   = () => { db.close(); reject(req.error); };
+  });
+}
+async function idbDelete(key){
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror    = () => { db.close(); reject(tx.error); };
+  });
+}
+
+/* ------------------------------ TOASTS ------------------------------ */
+function showToast(message, type = 'success', action = null){
+  const wrap = $('#toastWrap');
+  const icons = { success:'fa-circle-check', error:'fa-circle-exclamation', warn:'fa-triangle-exclamation', info:'fa-circle-info' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<i class="fas ${icons[type] || icons.success} lead"></i><span>${message}</span>`;
+  if (action){
+    const btn = document.createElement('button');
+    btn.className = 'undo-btn';
+    btn.textContent = action.label;
+    btn.onclick = () => { action.fn(); dismiss(); };
+    el.appendChild(btn);
+  }
+  wrap.appendChild(el);
+  const dismiss = () => {
+    el.classList.add('hide');
+    setTimeout(() => el.remove(), 300);
+  };
+  setTimeout(dismiss, action ? 8000 : 3400);
+}
+
+/* ------------------------- MODAL SYSTEM ------------------------- */
+function openModal(html, size = 'md', onClose = null){
+  const root = $('#modalRoot');
+  root.innerHTML = `<div class="modal-backdrop"><div class="modal ${size}">${html}</div></div>`;
+  root.classList.add('open');
+  modalOnClose = onClose;
+  const backdrop = root.firstElementChild;
+  backdrop.addEventListener('mousedown', e => {
+    if (e.target === backdrop) closeModal();
+  });
+  $$('[data-close]', root).forEach(b => b.addEventListener('click', closeModal));
+  return backdrop;
+}
+function closeModal(){
+  const root = $('#modalRoot');
+  root.classList.remove('open');
+  root.innerHTML = '';
+  const cb = modalOnClose;
+  modalOnClose = null;
+  if (typeof cb === 'function') cb();
+}
+function confirmDialog({ title, message, confirmText = 'Confirm', danger = false, icon = 'fa-circle-question' }){
+  return new Promise(resolve => {
+    let resolved = false;
+    const finish = v => { if (!resolved){ resolved = true; resolve(v); } };
+    const backdrop = openModal(`
+      <div class="modal-head">
+        <h3><i class="fas ${icon}"></i> ${escapeHtml(title)}</h3>
+        <button class="icon-btn" data-close><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">${message}</div>
+      <div class="modal-foot">
+        <button class="btn-secondary" data-cancel>Cancel</button>
+        <button class="${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${escapeHtml(confirmText)}</button>
+      </div>
+    `, 'sm', () => finish(false));
+    backdrop.querySelector('[data-cancel]').onclick = () => { finish(false); closeModal(); };
+    backdrop.querySelector('[data-ok]').onclick     = () => { finish(true);  closeModal(); };
+  });
+}
+
+/* =====================================================================
+   STORAGE LAYER
+   ===================================================================== */
+async function verifyPermission(handle, readWrite = true){
+  const opts = { mode: readWrite ? 'readwrite' : 'read' };
+  try {
+    if ((await handle.queryPermission(opts)) === 'granted') return true;
+  } catch { /* ignore */ }
+  return false;
+}
+async function requestPermission(handle, readWrite = true){
+  const opts = { mode: readWrite ? 'readwrite' : 'read' };
+  try {
+    if ((await handle.queryPermission(opts)) === 'granted') return true;
+    if ((await handle.requestPermission(opts)) === 'granted') return true;
+  } catch { /* ignore */ }
+  return false;
+}
+
+async function writeCompanyToFile(company){
+  if (!directoryHandle) throw new Error('No folder selected');
+  if (!await requestPermission(directoryHandle, true)) throw new Error('Write permission denied');
+  const handle = await directoryHandle.getFileHandle(getFileNameFromCompany(company), { create: true });
+  const writable = await handle.createWritable();
+  await writable.write(JSON.stringify(company, null, 2));
+  await writable.close();
+}
+
+async function deleteCompanyFile(company){
+  if (!directoryHandle) return;
+  try { await directoryHandle.removeEntry(getFileNameFromCompany(company)); }
+  catch (err) { if (err.name !== 'NotFoundError') throw err; }
+}
+
+async function saveRecord(company){
+  if (storageMode === 'fs' && directoryHandle) await writeCompanyToFile(company);
+  else saveLocal();
+}
+async function removeRecord(company){
+  if (storageMode === 'fs' && directoryHandle) await deleteCompanyFile(company);
+  else saveLocal();
+}
+async function saveRecordUpdate(oldCompany, newCompany){
+  if (storageMode === 'fs' && directoryHandle){
+    await writeCompanyToFile(newCompany);
+    if (getFileNameFromCompany(oldCompany) !== getFileNameFromCompany(newCompany)){
+      await deleteCompanyFile(oldCompany);
+    }
+  } else {
+    saveLocal();
+  }
+}
+
+function saveLocal(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(companies)); }
+  catch (e) { showToast('Browser storage is full', 'error'); }
+}
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.map(normalizeCompany).filter(Boolean) : [];
+  } catch { return []; }
+}
+
+async function loadCompaniesFromFolder(){
+  if (!directoryHandle){ companies = []; return; }
+  if (!await verifyPermission(directoryHandle, false)){
+    showToast('Cannot read the selected folder', 'error'); return;
+  }
+  const loaded = [];
+  for await (const entry of directoryHandle.values()){
+    if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.txt')){
+      try {
+        const text = await (await entry.getFile()).text();
+        const c = normalizeCompany(JSON.parse(text));
+        if (c) loaded.push(c);
+      } catch (e) { console.warn('Skipping', entry.name, e); }
+    }
+  }
+  companies = loaded;
+  showToast(`Loaded <b>${companies.length}</b> companies from "${escapeHtml(directoryHandle.name)}"`, 'info');
+}
+
+/* =====================================================================
+   RENDERING
+   ===================================================================== */
+function renderAll(){
+  $('#companyCount').textContent = companies.length;
+  renderDashboard();
+  renderDirectory();
+  renderCategoryOptions();
+  updateFolderUI();
+}
+
+function updateFolderUI(){
+  const pill      = $('#modePill');
+  const span      = $('#folderPathSpan');
+  const reconnect = $('#reconnectBtn');
+  const forget    = $('#forgetFolderBtn');
+
+  // Show "Forget Folder" whenever a handle is remembered (IDB holds one) or we're in fs mode
+  if (directoryHandle || folderPending){
+    forget.style.display = '';
+  } else {
+    forget.style.display = 'none';
+  }
+
+  if (folderPending && directoryHandle){
+    pill.className = 'mode-pill local';
+    pill.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Folder Pending</span>';
+    span.innerHTML = `<i class="fas fa-hourglass-half" style="color:var(--warn)"></i> ${escapeHtml(directoryHandle.name)}`;
+    reconnect.style.display = '';
+    return;
+  }
+
+  reconnect.style.display = 'none';
+
+  if (storageMode === 'fs' && directoryHandle){
+    pill.className = 'mode-pill';
+    pill.innerHTML = '<i class="fas fa-folder-open"></i><span>File System</span>';
+    span.innerHTML = `<i class="fas fa-circle-check" style="color:var(--success)"></i> ${escapeHtml(directoryHandle.name)}`;
+  } else {
+    pill.className = 'mode-pill local';
+    pill.innerHTML = '<i class="fas fa-hard-drive"></i><span>Browser Storage</span>';
+    span.innerHTML = '<i class="fas fa-circle-info" style="color:var(--warn)"></i> localStorage';
+  }
+}
+
+/* ---------------------------- DASHBOARD ---------------------------- */
+function renderDashboard(){
+  const now = new Date();
+  const total = companies.length;
+  const thisMonth = companies.filter(c => {
+    const d = new Date(c.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
+  const catMap = {};
+  companies.forEach(c => {
+    const k = c.category || 'General';
+    catMap[k] = (catMap[k] || 0) + 1;
+  });
+  const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+
+  $('#statTotal').textContent    = total;
+  $('#statMonth').textContent    = thisMonth;
+  $('#statCats').textContent     = catEntries.length;
+  $('#statContacts').textContent = companies.filter(c => c.phone).length;
+  $('#dashSub').textContent      = storageMode === 'fs' && directoryHandle
+    ? `Folder: ${directoryHandle.name}` : 'Browser storage';
+
+  const barsEl = $('#categoryBars');
+  if (!catEntries.length){
+    barsEl.innerHTML = `<div class="empty-state" style="padding:30px"><small>No companies yet</small></div>`;
+  } else {
+    const max = catEntries[0][1];
+    barsEl.innerHTML = catEntries.slice(0, 7).map(([name, count]) => `
+      <div class="bar-row">
+        <span class="bar-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:${Math.max(6, (count / max) * 100)}%"></span></span>
+        <span class="bar-count">${count}</span>
+      </div>
+    `).join('');
+  }
+
+  const recentEl = $('#recentList');
+  const recent = [...companies]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 6);
+  if (!recent.length){
+    recentEl.innerHTML = `<div class="empty-state" style="padding:30px"><small>No companies yet</small></div>`;
+  } else {
+    recentEl.innerHTML = recent.map(c => {
+      const h = hueFromString(c.name);
+      return `
+      <div class="recent-item" data-open="${c.id}">
+        <div class="avatar" style="--h:${h};width:36px;height:36px;border-radius:12px;font-size:.75rem">${escapeHtml(initials(c.name))}</div>
+        <div style="flex:1;min-width:0">
+          <div class="r-name">${escapeHtml(c.name)}</div>
+          <div class="r-meta">${escapeHtml(c.category || 'General')} · ${formatDate(c.createdAt)}</div>
+        </div>
+        <i class="fas fa-chevron-right" style="color:var(--text-mute);font-size:.75rem"></i>
+      </div>`;
+    }).join('');
+    $$('.recent-item', recentEl).forEach(el => {
+      el.addEventListener('click', () => {
+        const c = companies.find(x => String(x.id) === el.dataset.open);
+        if (c) openCompanyDetail(c);
+      });
+    });
+  }
+}
+
+/* ---------------------------- DIRECTORY ---------------------------- */
+function getFilteredCompanies(){
+  let list = [...companies];
+  const q = searchTerm.trim().toLowerCase();
+  if (q){
+    list = list.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.gstin.toLowerCase().includes(q) ||
+      c.phone.toLowerCase().includes(q) ||
+      c.address.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      c.contact.toLowerCase().includes(q) ||
+      c.category.toLowerCase().includes(q)
+    );
+  }
+  if (categoryFilter){
+    list = list.filter(c => (c.category || 'General') === categoryFilter);
+  }
+  switch (sortMode){
+    case 'name-asc':  list.sort((a, b) => a.name.localeCompare(b.name)); break;
+    case 'name-desc': list.sort((a, b) => b.name.localeCompare(a.name)); break;
+    case 'newest':    list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); break;
+    case 'oldest':    list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); break;
+    case 'updated':   list.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)); break;
+  }
+  return list;
+}
+
+function renderCategoryOptions(){
+  const cats = [...new Set(companies.map(c => c.category || 'General'))].sort();
+  const sel = $('#categoryFilter');
+  const current = sel.value;
+  sel.innerHTML = `<option value="">All categories</option>` +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  if (cats.includes(current)) sel.value = current;
+
+  $('#categoryList').innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
+}
+
+function renderDirectory(){
+  const container = $('#companiesGridContainer');
+  const list = getFilteredCompanies();
+
+  $('#dirTotal').textContent = companies.length;
+  $('#resultCount').innerHTML = companies.length
+    ? `Showing <b>${list.length}</b> of <b>${companies.length}</b> companies`
+    : '';
+
+  if (!companies.length){
+    container.className = 'company-grid';
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-folder-open"></i>
+        <p>No companies yet</p>
+        <small>Head to <b>Add Company</b> or select a data folder to get started.</small>
+      </div>`;
+    return;
+  }
+  if (!list.length){
+    container.className = 'company-grid';
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-magnifying-glass"></i>
+        <p>No matches found</p>
+        <small>Try a different search term or clear the filters.</small>
+      </div>`;
+    return;
+  }
+
+  if (viewMode === 'grid') renderGrid(container, list);
+  else renderList(container, list);
+
+  updateBulkBar();
+}
+
+function renderGrid(container, list){
+  container.className = 'company-grid';
+  container.innerHTML = list.map((c, i) => {
+    const h = hueFromString(c.name);
+    const sel = selectedIds.has(String(c.id));
+    return `
+    <article class="company-card ${sel ? 'selected' : ''}" data-id="${c.id}" style="--h:${h};animation-delay:${Math.min(i * 25, 350)}ms">
+      <label class="select-box" title="Select">
+        <input type="checkbox" class="card-select" data-id="${c.id}" ${sel ? 'checked' : ''}>
+        <i class="fas fa-check"></i>
+      </label>
+      <div class="card-top">
+        <div class="avatar">${escapeHtml(initials(c.name))}</div>
+        <div class="card-title-wrap">
+          <h3 title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</h3>
+          <span class="chip">${escapeHtml(c.category || 'General')}</span>
+        </div>
+      </div>
+      ${c.gstin ? `<div class="card-detail"><i class="fas fa-hashtag"></i><span class="val">${escapeHtml(c.gstin)}</span><button class="copy-mini" data-copy="${escapeHtml(c.gstin)}" title="Copy"><i class="fas fa-copy"></i></button></div>` : ''}
+      ${c.phone ? `<div class="card-detail"><i class="fas fa-phone"></i><span class="val">${escapeHtml(c.phone)}</span><button class="copy-mini" data-copy="${escapeHtml(c.phone)}" title="Copy"><i class="fas fa-copy"></i></button></div>` : ''}
+      ${c.address ? `<div class="card-detail"><i class="fas fa-location-dot"></i><span class="val">${escapeHtml(c.address.length > 70 ? c.address.slice(0, 70) + '…' : c.address)}</span></div>` : ''}
+      ${c.email ? `<div class="card-detail"><i class="fas fa-envelope"></i><span class="val">${escapeHtml(c.email)}</span></div>` : ''}
+      <div class="card-actions">
+        <button data-act="view" title="Details"><i class="fas fa-eye"></i></button>
+        <button data-act="edit" title="Edit"><i class="fas fa-pen"></i></button>
+        <button data-act="copy" title="Copy details"><i class="fas fa-clipboard"></i></button>
+        <button data-act="del" title="Delete"><i class="fas fa-trash"></i></button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function renderList(container, list){
+  container.className = '';
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:38px"><input type="checkbox" id="headSelect"></th>
+            <th>Company</th>
+            <th>GSTIN</th>
+            <th>Phone</th>
+            <th>Category</th>
+            <th>Added</th>
+            <th style="width:150px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(c => {
+            const sel = selectedIds.has(String(c.id));
+            return `
+            <tr data-id="${c.id}">
+              <td><input type="checkbox" class="card-select" data-id="${c.id}" ${sel ? 'checked' : ''}></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div class="avatar" style="--h:${hueFromString(c.name)};width:30px;height:30px;border-radius:10px;font-size:.68rem">${escapeHtml(initials(c.name))}</div>
+                  <b>${escapeHtml(c.name)}</b>
+                </div>
+              </td>
+              <td>${escapeHtml(c.gstin || '—')}</td>
+              <td>${escapeHtml(c.phone || '—')}</td>
+              <td>${escapeHtml(c.category || 'General')}</td>
+              <td>${formatDate(c.createdAt)}</td>
+              <td>
+                <div class="row-actions">
+                  <button data-act="view" title="Details"><i class="fas fa-eye"></i></button>
+                  <button data-act="edit" title="Edit"><i class="fas fa-pen"></i></button>
+                  <button data-act="del" title="Delete"><i class="fas fa-trash"></i></button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  const head = $('#headSelect');
+  if (head){
+    head.checked = list.length > 0 && list.every(c => selectedIds.has(String(c.id)));
+    head.addEventListener('change', () => {
+      list.forEach(c => head.checked ? selectedIds.add(String(c.id)) : selectedIds.delete(String(c.id)));
+      renderDirectory();
+    });
+  }
+}
+
+function updateBulkBar(){
+  const bar = $('#bulkBar');
+  const n = selectedIds.size;
+  if (n > 0){ bar.classList.add('show'); $('#bulkCount').textContent = n; }
+  else bar.classList.remove('show');
+}
+
+/* ------------------------- COMPANY DETAIL MODAL ------------------------- */
+function openCompanyDetail(c){
+  const h = hueFromString(c.name);
+  const rows = [
+    ['GSTIN',    c.gstin],
+    ['Address',  c.address],
+    ['Phone',    c.phone],
+    ['Email',    c.email],
+    ['Contact',  c.contact],
+    ['Category', c.category],
+    ['Notes',    c.notes],
+    ['Created',  formatDate(c.createdAt)],
+    ['Updated',  formatDate(c.updatedAt)]
+  ].filter(([, v]) => v);
+
+  const backdrop = openModal(`
+    <div class="modal-head">
+      <h3><i class="fas fa-building"></i> Company details</h3>
+      <button class="icon-btn" data-close><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div class="avatar" style="--h:${h};width:60px;height:60px;border-radius:20px;font-size:1.3rem">${escapeHtml(initials(c.name))}</div>
+        <div>
+          <div style="font-size:1.2rem;font-weight:800;color:var(--text)">${escapeHtml(c.name)}</div>
+          <span class="chip" style="--h:${h}">${escapeHtml(c.category || 'General')}</span>
+        </div>
+      </div>
+      <div class="detail-list">
+        ${rows.map(([k, v]) => `
+          <div class="detail-row">
+            <div class="k">${escapeHtml(k)}</div>
+            <div class="v">${escapeHtml(v)}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" data-close>Close</button>
+      <button class="btn-secondary" id="detailCopy"><i class="fas fa-clipboard"></i> Copy</button>
+      <button class="btn-accent" id="detailEdit"><i class="fas fa-pen"></i> Edit</button>
+    </div>
+  `, 'md');
+
+  backdrop.querySelector('#detailEdit').onclick = () => { closeModal(); setTimeout(() => openCompanyForm(c), 120); };
+  backdrop.querySelector('#detailCopy').onclick = () => {
+    const text =
+`${c.name}
+GSTIN: ${c.gstin}
+Address: ${c.address}
+Phone: ${c.phone}${c.email ? `\nEmail: ${c.email}` : ''}${c.contact ? `\nContact: ${c.contact}` : ''}`;
+    copyText(text);
+  };
+}
+
+/* --------------------------- COMPANY FORM --------------------------- */
+function openCompanyForm(existing = null){
+  const isEdit = !!existing;
+  const c = existing || {};
+  const cats = [...new Set(companies.map(x => x.category || 'General'))].sort();
+
+  const backdrop = openModal(`
+    <form id="companyForm" autocomplete="off">
+      <div class="modal-head">
+        <h3><i class="fas fa-${isEdit ? 'pen' : 'circle-plus'}"></i> ${isEdit ? 'Edit company' : 'New company'}</h3>
+        <button type="button" class="icon-btn" data-close><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="field span-2"><span>Company name *</span>
+            <input name="name" required value="${escapeHtml(c.name || '')}" placeholder="Acme Industries Pvt Ltd">
+          </label>
+          <label class="field"><span>GSTIN *</span>
+            <input name="gstin" required maxlength="15" style="text-transform:uppercase"
+                   value="${escapeHtml(c.gstin || '')}" placeholder="22AAAAA0000A1Z5">
+          </label>
+          <label class="field"><span>Phone *</span>
+            <input name="phone" required value="${escapeHtml(c.phone || '')}" placeholder="9876543210">
+          </label>
+          <label class="field span-2"><span>Address *</span>
+            <textarea name="address" rows="2" required placeholder="Street, City, State, PIN">${escapeHtml(c.address || '')}</textarea>
+          </label>
+          <label class="field"><span>Email</span>
+            <input name="email" type="email" value="${escapeHtml(c.email || '')}" placeholder="contact@company.com">
+          </label>
+          <label class="field"><span>Contact person</span>
+            <input name="contact" value="${escapeHtml(c.contact || '')}" placeholder="Ravi Kumar">
+          </label>
+          <label class="field"><span>Category</span>
+            <input name="category" list="modalCatList" value="${escapeHtml(c.category || '')}" placeholder="Manufacturing">
+            <datalist id="modalCatList">${cats.map(x => `<option value="${escapeHtml(x)}">`).join('')}</datalist>
+          </label>
+          <label class="field"><span>Notes</span>
+            <input name="notes" value="${escapeHtml(c.notes || '')}" placeholder="Optional">
+          </label>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-secondary" data-close>Cancel</button>
+        <button type="submit" class="btn-primary"><i class="fas fa-floppy-disk"></i> ${isEdit ? 'Update' : 'Save'}</button>
+      </div>
+    </form>
+  `, 'lg');
+
+  const form = backdrop.querySelector('#companyForm');
+  setTimeout(() => form.querySelector('[name="name"]').focus(), 80);
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const data = {
+      name:     String(fd.get('name') || '').trim(),
+      gstin:    String(fd.get('gstin') || '').trim().toUpperCase(),
+      address:  String(fd.get('address') || '').trim(),
+      phone:    String(fd.get('phone') || '').trim(),
+      email:    String(fd.get('email') || '').trim(),
+      contact:  String(fd.get('contact') || '').trim(),
+      category: String(fd.get('category') || '').trim() || 'General',
+      notes:    String(fd.get('notes') || '').trim()
+    };
+
+    if (!data.name || !data.gstin || !data.address || !data.phone){
+      showToast('Please fill in all required fields', 'error'); return;
+    }
+    if (!isValidPhone(data.phone)){
+      showToast('Phone must contain 7–15 digits', 'error'); return;
+    }
+    const dupName = companies.find(x =>
+      x.name.toLowerCase() === data.name.toLowerCase() && (!isEdit || x.id !== existing.id));
+    if (dupName){ showToast(`A company named "${escapeHtml(data.name)}" already exists`, 'error'); return; }
+    if (data.gstin){
+      const dupGst = companies.find(x => x.gstin && x.gstin === data.gstin && (!isEdit || x.id !== existing.id));
+      if (dupGst){ showToast(`GSTIN already used by "${escapeHtml(dupGst.name)}"`, 'error'); return; }
+    }
+    if (data.gstin && !isValidGstin(data.gstin)){
+      const ok = await confirmDialog({
+        title: 'GSTIN looks unusual',
+        message: `<b>${escapeHtml(data.gstin)}</b> doesn't match the standard 15-character Indian GSTIN format.<br><br>Save it anyway?`,
+        confirmText: 'Save anyway', icon: 'fa-triangle-exclamation'
+      });
+      if (!ok) return;
+    }
+
+    try {
+      if (isEdit){
+        const idx = companies.findIndex(x => x.id === existing.id);
+        const old = companies[idx];
+        const updated = { ...old, ...data, updatedAt: new Date().toISOString() };
+        await saveRecordUpdate(old, updated);
+        companies[idx] = updated;
+        showToast(`"${escapeHtml(updated.name)}" updated`);
+      } else {
+        const now = new Date().toISOString();
+        const company = { id: Date.now() + Math.floor(Math.random() * 1000), ...data, createdAt: now, updatedAt: now };
+        await saveRecord(company);
+        companies.push(company);
+        showToast(`"${escapeHtml(company.name)}" saved`);
+      }
+      closeModal();
+      renderAll();
+    } catch (err){
+      showToast('Save failed: ' + err.message, 'error');
+    }
+  });
+}
+
+/* ------------------------------ ACTIONS ------------------------------ */
+async function deleteCompanies(ids){
+  if (!ids.length) return;
+  const items = companies.filter(c => ids.includes(String(c.id)));
+  if (!items.length) return;
+
+  const ok = await confirmDialog({
+    title: items.length === 1 ? 'Delete company' : `Delete ${items.length} companies`,
+    message: items.length === 1
+      ? `Permanently delete <b>${escapeHtml(items[0].name)}</b>?`
+      : `Permanently delete <b>${items.length}</b> companies?`,
+    confirmText: 'Delete', danger: true, icon: 'fa-trash'
+  });
+  if (!ok) return;
+
+  const snapshot = items.map(c => ({ company: c, index: companies.findIndex(x => x.id === c.id) }));
+
+  try {
+    for (const c of items){
+      await removeRecord(c);
+      companies = companies.filter(x => x.id !== c.id);
+    }
+    ids.forEach(id => selectedIds.delete(String(id)));
+    renderAll();
+
+    showToast(
+      items.length === 1 ? `Deleted "${escapeHtml(items[0].name)}"` : `Deleted ${items.length} companies`,
+      'warn',
+      {
+        label: 'Undo',
+        fn: async () => {
+          snapshot.sort((a, b) => a.index - b.index).forEach(({ company, index }) => {
+            companies.splice(Math.min(index, companies.length), 0, company);
+          });
+          try {
+            for (const c of items) await saveRecord(c);
+          } catch (e) { showToast('Undo failed: ' + e.message, 'error'); }
+          renderAll();
+          showToast('Restored');
+        }
+      }
+    );
+  } catch (err){
+    showToast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+function copyText(text){
+  const done = () => showToast('Copied to clipboard', 'info');
+  if (navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done).catch(() => fallback());
+  } else fallback();
+
+  function fallback(){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch { showToast('Copy failed', 'error'); }
+    ta.remove();
+  }
+}
+
+/* ------------------------------ EXPORTS ------------------------------ */
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+function stamp(){ return new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-'); }
+
+function exportJson(list = companies){
+  if (!list.length){ showToast('Nothing to export', 'error'); return; }
+  downloadBlob(JSON.stringify(list, null, 2), `bizmanager-backup-${stamp()}.json`, 'application/json');
+  showToast(`Exported ${list.length} companies as JSON`);
+}
+function exportCsv(list = companies){
+  if (!list.length){ showToast('Nothing to export', 'error'); return; }
+  const headers = ['Name','GSTIN','Address','Phone','Email','Contact','Category','Notes','Created','Updated'];
+  const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = list.map(c => [c.name, c.gstin, c.address, c.phone, c.email, c.contact, c.category, c.notes, c.createdAt, c.updatedAt].map(esc).join(','));
+  downloadBlob([headers.join(','), ...rows].join('\r\n'), `bizmanager-companies-${stamp()}.csv`, 'text/csv');
+  showToast(`Exported ${list.length} companies as CSV`);
+}
+function printDirectory(){
+  if (!companies.length){ showToast('Nothing to print', 'error'); return; }
+  const rows = [...companies].sort((a, b) => a.name.localeCompare(b.name)).map(c => `
+    <tr>
+      <td>${escapeHtml(c.name)}</td>
+      <td>${escapeHtml(c.gstin)}</td>
+      <td>${escapeHtml(c.phone)}</td>
+      <td>${escapeHtml(c.category || 'General')}</td>
+      <td>${escapeHtml(c.address)}</td>
+    </tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Company Directory</title>
+    <style>
+      body{font-family:Inter,Arial,sans-serif;padding:30px;color:#111}
+      h1{font-size:20px;margin-bottom:4px}
+      .meta{color:#666;font-size:12px;margin-bottom:20px}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      th,td{border:1px solid #ddd;padding:8px 10px;text-align:left}
+      th{background:#f3f4f6;font-weight:700}
+    </style></head><body>
+    <h1>Company Directory</h1>
+    <div class="meta">${companies.length} companies · generated ${new Date().toLocaleString()}</div>
+    <table><thead><tr><th>Name</th><th>GSTIN</th><th>Phone</th><th>Category</th><th>Address</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <script>window.onload=()=>{setTimeout(()=>window.print(),300)}<\/script>
+    </body></html>`;
+  const w = window.open('', '_blank');
+  if (!w){ showToast('Pop-up blocked — allow pop-ups to print', 'error'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+/* ------------------------------ IMPORT ------------------------------ */
+function importData(){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,.txt,application/json,text/plain';
+  input.multiple = true;
+  input.onchange = async e => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const incoming = [];
+    for (const file of files){
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) parsed.forEach(p => { const c = normalizeCompany(p); if (c) incoming.push(c); });
+        else { const c = normalizeCompany(parsed); if (c) incoming.push(c); }
+      } catch { showToast(`Skipped "${file.name}" — invalid format`, 'warn'); }
+    }
+    if (!incoming.length){ showToast('No valid company records found', 'error'); return; }
+
+    const ok = await confirmDialog({
+      title: 'Import companies',
+      message: `Found <b>${incoming.length}</b> valid record(s).<br><br>
+                Existing companies with the same name will be <b>updated</b>; new ones will be added.`,
+      confirmText: 'Import', icon: 'fa-file-import'
+    });
+    if (!ok) return;
+
+    let added = 0, updated = 0;
+    try {
+      for (const inc of incoming){
+        const idx = companies.findIndex(c => c.name.toLowerCase() === inc.name.toLowerCase());
+        if (idx >= 0){
+          const merged = { ...companies[idx], ...inc, id: companies[idx].id, updatedAt: new Date().toISOString() };
+          await saveRecordUpdate(companies[idx], merged);
+          companies[idx] = merged;
+          updated++;
+        } else {
+          const now = new Date().toISOString();
+          const c = { ...inc, id: Date.now() + Math.floor(Math.random() * 100000), createdAt: inc.createdAt || now, updatedAt: now };
+          await saveRecord(c);
+          companies.push(c);
+          added++;
+        }
+      }
+      renderAll();
+      showToast(`Import complete — ${added} added, ${updated} updated`);
+    } catch (err){
+      showToast('Import error: ' + err.message, 'error');
+    }
+  };
+  input.click();
+}
+
+/* --------------------------- DUPLICATE FINDER --------------------------- */
+async function findDuplicates(){
+  if (companies.length < 2){ showToast('Not enough companies to compare', 'info'); return; }
+  const byName = {}, byGstin = {};
+  companies.forEach(c => {
+    const n = c.name.toLowerCase().trim();
+    (byName[n] = byName[n] || []).push(c);
+    if (c.gstin){ const g = c.gstin.toUpperCase(); (byGstin[g] = byGstin[g] || []).push(c); }
+  });
+  const nameDupes  = Object.values(byName).filter(a => a.length > 1);
+  const gstinDupes = Object.values(byGstin).filter(a => a.length > 1);
+
+  if (!nameDupes.length && !gstinDupes.length){
+    showToast('No duplicates found — your data is clean', 'success'); return;
+  }
+
+  const section = (title, groups) => groups.length ? `
+    <div style="margin-bottom:18px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">${title}</div>
+      ${groups.map(g => `<div style="font-size:.82rem;padding:6px 0;border-bottom:1px dashed var(--border-soft)">
+        ${g.map(c => escapeHtml(c.name)).join(' · ')}</div>`).join('')}
+    </div>` : '';
+
+  openModal(`
+    <div class="modal-head">
+      <h3><i class="fas fa-clone"></i> Duplicate report</h3>
+      <button class="icon-btn" data-close><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      ${section(`Duplicate names (${nameDupes.length})`, nameDupes)}
+      ${section(`Duplicate GSTINs (${gstinDupes.length})`, gstinDupes)}
+    </div>
+    <div class="modal-foot"><button class="btn-secondary" data-close>Close</button></div>
+  `, 'md');
+}
+
+/* =====================================================================
+   FOLDER HANDLING — persistent across sessions via IndexedDB
+   ===================================================================== */
+async function selectFolder(){
+  if (!window.showDirectoryPicker){
+    showToast('File System Access API not supported — use Chrome, Edge or Opera', 'error');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    directoryHandle = handle;
+    storageMode = 'fs';
+    folderPending = false;
+    localStorage.setItem(LS_MODE, 'fs');
+    // Persist the handle so it survives reloads
+    try { await idbSet(IDB_KEY, handle); }
+    catch (e) { console.warn('Could not persist folder handle:', e); }
+    await loadCompaniesFromFolder();
+    renderAll();
+    showToast(`Folder "${escapeHtml(handle.name)}" is now active — it will be remembered`, 'success');
+  } catch (err){
+    if (err.name !== 'AbortError') showToast('Folder selection failed', 'error');
+  }
+}
+
+function useBrowserStorage(){
+  // Keep the stored folder handle so the user can switch back later
+  storageMode = 'local';
+  folderPending = false;
+  localStorage.setItem(LS_MODE, 'local');
+  companies = loadLocal();
+  renderAll();
+  showToast(`Loaded ${companies.length} companies from browser storage`, 'info');
+}
+
+async function reconnectFolder(){
+  if (!directoryHandle){
+    showToast('No folder to reconnect', 'error'); return;
+  }
+  try {
+    const granted = (await directoryHandle.requestPermission({ mode: 'readwrite' })) === 'granted';
+    if (granted){
+      storageMode = 'fs';
+      folderPending = false;
+      localStorage.setItem(LS_MODE, 'fs');
+      await loadCompaniesFromFolder();
+      renderAll();
+      showToast(`Folder "${escapeHtml(directoryHandle.name)}" reconnected`, 'success');
+    } else {
+      showToast('Permission denied — folder not reconnected', 'error');
+    }
+  } catch (e){
+    showToast('Reconnect failed: ' + e.message, 'error');
+  }
+}
+
+async function forgetFolder(){
+  const ok = await confirmDialog({
+    title: 'Forget folder',
+    message: `Stop remembering <b>${escapeHtml(directoryHandle?.name || 'this folder')}</b>?<br><br>
+              Your files on disk won't be touched — you'll just need to pick the folder again next time.`,
+    confirmText: 'Forget folder', danger: true, icon: 'fa-trash-can'
+  });
+  if (!ok) return;
+  try { await idbDelete(IDB_KEY); } catch {}
+  directoryHandle = null;
+  folderPending = false;
+  storageMode = 'local';
+  localStorage.setItem(LS_MODE, 'local');
+  companies = loadLocal();
+  renderAll();
+  showToast('Folder forgotten — using browser storage', 'info');
+}
+
+async function refreshData(){
+  if (storageMode === 'fs' && directoryHandle){
+    await loadCompaniesFromFolder();
+  } else {
+    companies = loadLocal();
+  }
+  selectedIds.clear();
+  renderAll();
+  showToast('Data reloaded', 'info');
+}
+
+/* Try to restore the remembered folder on page load.
+   Strategy: query permission → if granted use silently.
+             else try requestPermission (Chrome may allow this when the site has persistent permission).
+             else fall back to "pending" state with a prominent Reconnect button. */
+async function restoreRememberedFolder(){
+  let handle = null;
+  try { handle = await idbGet(IDB_KEY); } catch (e) { console.warn(e); }
+  if (!handle || !window.showDirectoryPicker) return false;
+
+  directoryHandle = handle;
+
+  // 1) Silent check
+  try {
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted'){
+      storageMode = 'fs';
+      folderPending = false;
+      await loadCompaniesFromFolder();
+      renderAll();
+      showToast(`Folder "${escapeHtml(handle.name)}" restored`, 'success');
+      return true;
+    }
+  } catch (e) { console.warn(e); }
+
+  // 2) Try to request (some Chromium versions grant silently when permission was previously persistent)
+  try {
+    const granted = (await handle.requestPermission({ mode: 'readwrite' })) === 'granted';
+    if (granted){
+      storageMode = 'fs';
+      folderPending = false;
+      await loadCompaniesFromFolder();
+      renderAll();
+      showToast(`Folder "${escapeHtml(handle.name)}" restored`, 'success');
+      return true;
+    }
+  } catch (e) { /* expected — needs user gesture */ }
+
+  // 3) Could not auto-restore: mark as pending so the UI shows a Reconnect button
+  folderPending = true;
+  companies = loadLocal();
+  storageMode = 'local';
+  renderAll();
+  showToast(
+    `Folder "<b>${escapeHtml(handle.name)}</b>" is remembered — click <b>Reconnect</b> to restore access`,
+    'warn'
+  );
+  return true;
+}
+
+/* =====================================================================
+   NAVIGATION
+   ===================================================================== */
+function setActiveView(view){
+  currentView = view;
+  ['dashboard', 'add', 'directory', 'data'].forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.classList.toggle('hidden-card', v !== view);
+  });
+  $$('.sidebar-btn[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  if (view === 'dashboard') renderDashboard();
+  if (view === 'directory') renderDirectory();
+  $('#mainScroll').scrollTop = 0;
+}
+
+/* =====================================================================
+   EVENT WIRING
+   ===================================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ---------- Theme ---------- */
+  const savedTheme = localStorage.getItem(LS_THEME) || 'dark';
+  applyTheme(savedTheme);
+  $('#themeToggleBtn').addEventListener('click', () => {
+    applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------- Sidebar nav ---------- */
+  $$('.sidebar-btn[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => setActiveView(btn.dataset.view));
+  });
+
+  /* ---------- Folder buttons ---------- */
+  $('#selectFolderBtn').addEventListener('click', selectFolder);
+  $('#useBrowserBtn').addEventListener('click', useBrowserStorage);
+  $('#refreshFolderBtn').addEventListener('click', refreshData);
+  $('#reconnectBtn').addEventListener('click', reconnectFolder);
+  $('#forgetFolderBtn').addEventListener('click', forgetFolder);
+
+  /* ---------- Add form ---------- */
+  const addForm = $('#addForm');
+  addForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const fd = new FormData(addForm);
+    const data = {
+      name:     String(fd.get('name') || '').trim(),
+      gstin:    String(fd.get('gstin') || '').trim().toUpperCase(),
+      address:  String(fd.get('address') || '').trim(),
+      phone:    String(fd.get('phone') || '').trim(),
+      email:    String(fd.get('email') || '').trim(),
+      contact:  String(fd.get('contact') || '').trim(),
+      category: String(fd.get('category') || '').trim() || 'General',
+      notes:    String(fd.get('notes') || '').trim()
+    };
+    if (!data.name || !data.gstin || !data.address || !data.phone){
+      showToast('All required fields must be filled', 'error'); return;
+    }
+    if (!isValidPhone(data.phone)){
+      showToast('Phone must contain 7–15 digits', 'error'); return;
+    }
+    if (companies.some(c => c.name.toLowerCase() === data.name.toLowerCase())){
+      showToast(`"${escapeHtml(data.name)}" already exists`, 'error'); return;
+    }
+    if (data.gstin && companies.some(c => c.gstin && c.gstin === data.gstin)){
+      showToast('That GSTIN is already registered', 'error'); return;
+    }
+    if (data.gstin && !isValidGstin(data.gstin)){
+      const ok = await confirmDialog({
+        title: 'GSTIN looks unusual',
+        message: `<b>${escapeHtml(data.gstin)}</b> doesn't match the standard 15-character GSTIN format.<br><br>Save anyway?`,
+        confirmText: 'Save anyway', icon: 'fa-triangle-exclamation'
+      });
+      if (!ok) return;
+    }
+
+    const now = new Date().toISOString();
+    const company = { id: Date.now() + Math.floor(Math.random() * 1000), ...data, createdAt: now, updatedAt: now };
+    try {
+      await saveRecord(company);
+      companies.push(company);
+      addForm.reset();
+      renderAll();
+      showToast(`"${escapeHtml(company.name)}" saved successfully`);
+    } catch (err){
+      showToast('Save failed: ' + err.message, 'error');
+    }
+  });
+
+  /* ---------- Directory toolbar ---------- */
+  const searchInput = $('#directorySearch');
+  let searchTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { searchTerm = searchInput.value; renderDirectory(); }, 140);
+  });
+  $('#sortSelect').addEventListener('change', e => { sortMode = e.target.value; renderDirectory(); });
+  $('#categoryFilter').addEventListener('change', e => { categoryFilter = e.target.value; renderDirectory(); });
+
+  $$('.view-toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      viewMode = b.dataset.mode;
+      $$('.view-toggle button').forEach(x => x.classList.toggle('active', x === b));
+      renderDirectory();
+    });
+  });
+
+  /* ---------- Directory interactions (delegated) ---------- */
+  const grid = $('#companiesGridContainer');
+
+  grid.addEventListener('click', async e => {
+    const copyBtn = e.target.closest('[data-copy]');
+    if (copyBtn){ copyText(copyBtn.dataset.copy); return; }
+
+    const actBtn = e.target.closest('[data-act]');
+    if (actBtn){
+      const holder = actBtn.closest('[data-id]');
+      if (!holder) return;
+      const company = companies.find(c => String(c.id) === holder.dataset.id);
+      if (!company) return;
+      switch (actBtn.dataset.act){
+        case 'view': openCompanyDetail(company); break;
+        case 'edit': openCompanyForm(company); break;
+        case 'copy': copyText(
+          `${company.name}\nGSTIN: ${company.gstin}\nAddress: ${company.address}\nPhone: ${company.phone}` +
+          (company.email ? `\nEmail: ${company.email}` : '')
+        ); break;
+        case 'del':  deleteCompanies([String(company.id)]); break;
+      }
+      return;
+    }
+  });
+
+  grid.addEventListener('change', e => {
+    const cb = e.target.closest('.card-select');
+    if (!cb) return;
+    const id = String(cb.dataset.id);
+    if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+    const card = cb.closest('.company-card');
+    if (card) card.classList.toggle('selected', cb.checked);
+    updateBulkBar();
+  });
+
+  grid.addEventListener('click', e => {
+    const card = e.target.closest('.company-card');
+    if (!card) return;
+    if (e.target.closest('button, label, input, a')) return;
+    const company = companies.find(c => String(c.id) === card.dataset.id);
+    if (company) openCompanyDetail(company);
+  });
+
+  /* ---------- Bulk bar ---------- */
+  $('#bulkSelectAll').addEventListener('click', () => {
+    getFilteredCompanies().forEach(c => selectedIds.add(String(c.id)));
+    renderDirectory();
+  });
+  $('#bulkClear').addEventListener('click', () => { selectedIds.clear(); renderDirectory(); });
+  $('#bulkDelete').addEventListener('click', () => deleteCompanies([...selectedIds]));
+  $('#bulkExport').addEventListener('click', () => {
+    const list = companies.filter(c => selectedIds.has(String(c.id)));
+    exportJson(list);
+  });
+
+  /* ---------- Data view ---------- */
+  $('#exportJsonBtn').addEventListener('click', () => exportJson());
+  $('#exportCsvBtn').addEventListener('click', () => exportCsv());
+  $('#importBtn').addEventListener('click', importData);
+  $('#printBtn').addEventListener('click', printDirectory);
+  $('#dedupeBtn').addEventListener('click', findDuplicates);
+  $('#wipeBtn').addEventListener('click', async () => {
+    if (!companies.length){ showToast('Nothing to delete', 'info'); return; }
+    const ok = await confirmDialog({
+      title: 'Delete all data',
+      message: `This will permanently remove <b>${companies.length}</b> company record(s)${storageMode === 'fs' ? ' from your folder' : ''}.<br><br>This cannot be undone. Are you sure?`,
+      confirmText: 'Delete everything', danger: true, icon: 'fa-triangle-exclamation'
+    });
+    if (!ok) return;
+    const snapshot = [...companies];
+    try {
+      for (const c of snapshot) await removeRecord(c);
+      companies = [];
+      selectedIds.clear();
+      renderAll();
+      showToast(`Deleted ${snapshot.length} companies`, 'warn');
+    } catch (err){
+      showToast('Wipe failed: ' + err.message, 'error');
+    }
+  });
+
+  /* ---------- Shortcuts help ---------- */
+  $('#shortcutsBtn').addEventListener('click', () => {
+    openModal(`
+      <div class="modal-head">
+        <h3><i class="fas fa-keyboard"></i> Keyboard shortcuts</h3>
+        <button class="icon-btn" data-close><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-list">
+          <div class="detail-row"><div class="k">Ctrl + K</div><div class="v">Focus the directory search</div></div>
+          <div class="detail-row"><div class="k">Ctrl + N</div><div class="v">Add a new company</div></div>
+          <div class="detail-row"><div class="k">Ctrl + D</div><div class="v">Go to directory</div></div>
+          <div class="detail-row"><div class="k">Esc</div><div class="v">Close the current dialog</div></div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn-secondary" data-close>Got it</button></div>
+    `, 'sm');
+  });
+
+  /* ---------- Global keyboard ---------- */
+  document.addEventListener('keydown', e => {
+    const modalOpen = $('#modalRoot').classList.contains('open');
+    if (e.key === 'Escape' && modalOpen){ closeModal(); return; }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+      e.preventDefault();
+      setActiveView('directory');
+      setTimeout(() => { $('#directorySearch').focus(); $('#directorySearch').select(); }, 60);
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n'){
+      e.preventDefault();
+      openCompanyForm();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd'){
+      e.preventDefault();
+      setActiveView('directory');
+    }
+  });
+
+  /* ---------- Boot ---------- */
+  (async function init(){
+    // First, try to restore a previously remembered folder
+    const restored = await restoreRememberedFolder();
+    if (!restored){
+      companies = loadLocal();
+      storageMode = 'local';
+      renderAll();
+      setActiveView('dashboard');
+      showToast('Welcome to BizManager Pro — select a folder or start adding companies', 'info');
+    } else {
+      setActiveView('dashboard');
+    }
+  })();
+});
+
+/* ---------- Theme helper ---------- */
+function applyTheme(theme){
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem(LS_THEME, theme);
+  const btn = $('#themeToggleBtn');
+  if (!btn) return;
+  const icon = btn.querySelector('i');
+  const label = btn.querySelector('span');
+  if (theme === 'dark'){
+    icon.className = 'fas fa-moon';
+    if (label) label.textContent = 'Light Mode';
+  } else {
+    icon.className = 'fas fa-sun';
+    if (label) label.textContent = 'Dark Mode';
+  }
+}
+</script>
+</body>
+</html>
