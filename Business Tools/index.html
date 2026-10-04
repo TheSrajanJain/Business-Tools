@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Tools</title>
+<style>
+  /* ===================== THEME TOKENS ===================== */
+  :root{
+    --bg:#f5f7fb;
+    --bg-2:#e9eef8;
+    --surface:rgba(255,255,255,.72);
+    --surface-solid:#ffffff;
+    --text:#0f172a;
+    --muted:#5b6b85;
+    --border:rgba(15,23,42,.09);
+    --border-strong:rgba(99,102,241,.45);
+    --shadow:0 12px 32px -18px rgba(15,23,42,.35);
+    --shadow-hover:0 28px 56px -26px rgba(15,23,42,.42);
+    --accent:#4f46e5;
+    --accent-2:#06b6d4;
+    --glow-1:rgba(99,102,241,.20);
+    --glow-2:rgba(6,182,212,.16);
+    --card-glow:rgba(99,102,241,.13);
+    --ring:rgba(99,102,241,.20);
+    --radius:22px;
+  }
+  [data-theme="dark"]{
+    --bg:#070b16;
+    --bg-2:#0e1528;
+    --surface:rgba(21,28,47,.72);
+    --surface-solid:#141b2e;
+    --text:#e9eefb;
+    --muted:#93a1bd;
+    --border:rgba(255,255,255,.09);
+    --border-strong:rgba(124,140,255,.55);
+    --shadow:0 16px 40px -22px rgba(0,0,0,.9);
+    --shadow-hover:0 34px 64px -28px rgba(0,0,0,.95);
+    --accent:#7c8cff;
+    --accent-2:#22d3ee;
+    --glow-1:rgba(99,102,241,.28);
+    --glow-2:rgba(34,211,238,.18);
+    --card-glow:rgba(124,140,255,.18);
+    --ring:rgba(124,140,255,.25);
+  }
+
+  /* ===================== BASE ===================== */
+  *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    transition:background .45s ease,color .45s ease;
+  }
+
+  /* ===================== BACKGROUND ===================== */
+  .bg{
+    position:fixed;inset:0;z-index:-3;
+    background:
+      radial-gradient(900px 620px at 10% -12%, var(--glow-1), transparent 62%),
+      radial-gradient(820px 620px at 92% -6%, var(--glow-2), transparent 60%),
+      linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);
+    transition:background .45s ease;
+  }
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(127,140,170,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(127,140,170,.06) 1px, transparent 1px);
+    background-size:52px 52px;
+    mask-image:radial-gradient(circle at 50% 22%, #000 0%, transparent 78%);
+    -webkit-mask-image:radial-gradient(circle at 50% 22%, #000 0%, transparent 78%);
+  }
+  .orb{
+    position:fixed;border-radius:50%;filter:blur(90px);
+    z-index:-2;pointer-events:none;opacity:.5;
+  }
+  .orb-1{width:440px;height:440px;top:-140px;left:-120px;background:var(--accent);animation:float1 22s ease-in-out infinite;}
+  .orb-2{width:380px;height:380px;top:-100px;right:-110px;background:var(--accent-2);animation:float2 26s ease-in-out infinite;}
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,50px)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-70px,60px)}}
+
+  /* ===================== LAYOUT ===================== */
+  .wrap{
+    max-width:1120px;
+    margin:0 auto;
+    padding:22px clamp(16px,4vw,40px) 70px;
+  }
+
+  /* ===================== TOP BAR ===================== */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:14px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.02em;font-size:1.02rem;}
+  .brand-mark{
+    width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 10px 22px -10px var(--accent);
+  }
+  .brand-mark svg{width:19px;height:19px;}
+
+  .topbar-right{display:flex;align-items:center;gap:10px;}
+  .pill{
+    display:flex;align-items:center;gap:9px;
+    padding:8px 15px;border-radius:999px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    font-size:.8rem;color:var(--muted);font-weight:500;
+    white-space:nowrap;
+  }
+  .pill b{color:var(--text);font-weight:700;}
+  .dot-live{
+    width:7px;height:7px;border-radius:50%;background:#22c55e;
+    box-shadow:0 0 0 0 rgba(34,197,94,.6);
+    animation:pulse 2.2s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}
+    70%{box-shadow:0 0 0 9px rgba(34,197,94,0)}
+    100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}
+  }
+
+  /* live clock — keeps digit width steady so nothing jitters */
+  #clock{
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum" 1;
+    letter-spacing:.01em;
+  }
+
+  .icon-btn{
+    width:40px;height:40px;border-radius:12px;
+    display:grid;place-items:center;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);
+    color:var(--text);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    transition:transform .2s ease,border-color .2s ease,background .2s ease;
+  }
+  .icon-btn:hover{transform:translateY(-2px);border-color:var(--border-strong);}
+  .icon-btn:active{transform:translateY(0) scale(.96);}
+  .icon-btn svg{width:19px;height:19px;}
+  [data-theme="light"] .ico-sun{display:none;}
+  [data-theme="dark"]  .ico-moon{display:none;}
+
+  /* ===================== HERO ===================== */
+  .hero{text-align:center;padding:clamp(38px,7vw,68px) 0 34px;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 14px;border-radius:999px;
+    font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent);
+    background:var(--surface);border:1px solid var(--border);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    margin-bottom:20px;
+    animation:rise .6s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .hero h1{
+    margin:0 0 14px;
+    font-size:clamp(2.1rem,5.6vw,3.4rem);
+    font-weight:800;
+    letter-spacing:-.035em;
+    line-height:1.08;
+    animation:rise .6s .06s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .grad{
+    background:linear-gradient(115deg,var(--accent) 10%,var(--accent-2) 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{
+    margin:0 auto;max-width:520px;
+    color:var(--muted);font-size:clamp(.95rem,2vw,1.06rem);line-height:1.65;
+    animation:rise .6s .12s cubic-bezier(.2,.8,.2,1) both;
+  }
+
+  /* ===================== SEARCH ===================== */
+  .search{
+    position:relative;max-width:470px;margin:30px auto 0;
+    animation:rise .6s .18s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .search-icon{
+    position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:18px;height:18px;color:var(--muted);pointer-events:none;
+    transition:color .2s ease;
+  }
+  .search input{
+    width:100%;
+    padding:15px 52px 15px 46px;
+    font-size:.95rem;font-family:inherit;color:var(--text);
+    background:var(--surface-solid);
+    border:1px solid var(--border);
+    border-radius:15px;
+    outline:none;
+    box-shadow:var(--shadow);
+    transition:border-color .25s ease,box-shadow .25s ease,background .35s ease;
+  }
+  .search input::placeholder{color:var(--muted);opacity:.85;}
+  .search input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 4px var(--ring), var(--shadow);
+  }
+  .search:focus-within .search-icon{color:var(--accent);}
+  .kbd{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    font-family:inherit;font-size:.72rem;font-weight:700;
+    color:var(--muted);
+    padding:3px 8px;border-radius:7px;
+    background:rgba(127,140,170,.13);
+    border:1px solid var(--border);
+    pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .search:focus-within .kbd{opacity:0;}
+
+  /* ===================== SECTIONS ===================== */
+  .section-head{
+    display:flex;align-items:center;gap:12px;
+    margin:44px 0 18px;
+  }
+  .section-head h2{
+    margin:0;font-size:.76rem;font-weight:800;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  }
+  .section-head .rule{flex:1;height:1px;background:var(--border);}
+
+  /* ===================== RECENT CHIPS ===================== */
+  .chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{
+    display:inline-flex;align-items:center;gap:9px;
+    padding:9px 16px;border-radius:999px;
+    background:var(--surface-solid);
+    border:1px solid var(--border);
+    color:var(--text);text-decoration:none;
+    font-size:.85rem;font-weight:600;
+    box-shadow:var(--shadow);
+    transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .22s,color .22s;
+  }
+  .chip::before{
+    content:"";width:7px;height:7px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  }
+  .chip:hover{transform:translateY(-3px);border-color:var(--border-strong);color:var(--accent);}
+
+  /* ===================== TOOL GRID ===================== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(268px,1fr));
+    gap:22px;
+  }
+  .card{
+    position:relative;
+    display:flex;flex-direction:column;gap:15px;
+    padding:28px 26px 24px;
+    border-radius:var(--radius);
+    background:var(--surface-solid);
+    border:1px solid var(--border);
+    text-decoration:none;color:inherit;text-align:left;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    isolation:isolate;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1),
+               box-shadow .35s ease,
+               border-color .35s ease;
+    animation:rise .6s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .card::after{
+    content:"";position:absolute;inset:0;border-radius:inherit;
+    background:radial-gradient(340px circle at var(--mx,50%) var(--my,0%), var(--card-glow), transparent 68%);
+    opacity:0;transition:opacity .35s ease;pointer-events:none;z-index:0;
+  }
+  .card > *{position:relative;z-index:1;}
+  .card:hover{
+    transform:translateY(-7px);
+    border-color:var(--border-strong);
+    box-shadow:var(--shadow-hover);
+  }
+  .card:hover::after{opacity:1;}
+  .card:focus-visible{
+    outline:none;
+    box-shadow:0 0 0 4px var(--ring), var(--shadow-hover);
+  }
+  .card.is-hidden{display:none;}
+
+  .card:nth-child(1){animation-delay:.06s;}
+  .card:nth-child(2){animation-delay:.13s;}
+  .card:nth-child(3){animation-delay:.20s;}
+  .card:nth-child(4){animation-delay:.27s;}
+
+  .icon{
+    width:54px;height:54px;border-radius:17px;
+    display:grid;place-items:center;color:#fff;
+    box-shadow:0 14px 26px -14px rgba(0,0,0,.55);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .icon svg{width:26px;height:26px;}
+  .card:hover .icon{transform:scale(1.07) rotate(-3deg);}
+
+  .g-indigo{background:linear-gradient(135deg,#6366f1,#8b5cf6);}
+  .g-amber {background:linear-gradient(135deg,#f59e0b,#ef4444);}
+  .g-cyan  {background:linear-gradient(135deg,#06b6d4,#3b82f6);}
+
+  .card-title{
+    font-size:1.15rem;font-weight:750;letter-spacing:-.02em;line-height:1.25;
+  }
+  .card-desc{
+    font-size:.885rem;line-height:1.6;color:var(--muted);
+    flex:1;margin:0;
+  }
+  .card-cta{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:.83rem;font-weight:700;letter-spacing:.01em;
+    color:var(--accent);
+    margin-top:2px;
+  }
+  .card-cta svg{
+    width:15px;height:15px;
+    transition:transform .3s cubic-bezier(.2,.8,.2,1);
+  }
+  .card:hover .card-cta svg{transform:translateX(5px);}
+
+  /* ===================== EMPTY STATE ===================== */
+  .empty{
+    text-align:center;padding:56px 20px;
+    color:var(--muted);font-size:.95rem;
+  }
+  .empty svg{width:42px;height:42px;opacity:.45;margin-bottom:12px;}
+
+  /* ===================== FOOTER ===================== */
+  footer{
+    margin-top:64px;padding-top:26px;
+    border-top:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    gap:14px;flex-wrap:wrap;
+    font-size:.8rem;color:var(--muted);
+  }
+  footer .hints{display:flex;gap:18px;flex-wrap:wrap;}
+  footer .hints span{display:inline-flex;align-items:center;gap:7px;}
+  footer kbd{
+    font-family:inherit;font-size:.7rem;font-weight:700;
+    padding:2px 7px;border-radius:6px;
+    background:rgba(127,140,170,.14);
+    border:1px solid var(--border);
+  }
+
+  /* ===================== ANIMATION ===================== */
+  @keyframes rise{
+    from{opacity:0;transform:translateY(18px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+    }
+  }
+
+  @media (max-width:560px){
+    .topbar{gap:10px;}
+    .pill.hide-sm{display:none;}
+    .card{padding:24px 22px 20px;}
+    footer{justify-content:center;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="wrap">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/>
+          <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>
+        </svg>
+      </span>
+      <span>Business&nbsp;Tools</span>
+    </div>
+
+    <div class="topbar-right">
+      <div class="pill hide-sm">
+        <span class="dot-live" aria-hidden="true"></span>
+        <span id="greeting">Welcome</span>
+        <span aria-hidden="true">·</span>
+        <b id="clock">--:--:--</b>
+      </div>
+      <div class="pill hide-sm">
+        <span id="date">—</span>
+      </div>
+
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+        <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+        </svg>
+        <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2v2.2M12 19.8V22M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2 12h2.2M19.8 12H22M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="eyebrow">Workspace</div>
+    <h1>Everything you need,<br><span class="grad">in one place.</span></h1>
+    <p>A focused collection of tools to calculate, design and manage — built to stay out of your way.</p>
+
+    <div class="search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/>
+      </svg>
+      <input id="search" type="text" placeholder="Search tools…" autocomplete="off" spellcheck="false" aria-label="Search tools">
+      <kbd class="kbd">/</kbd>
+    </div>
+  </section>
+
+  <!-- ============ RECENT ============ -->
+  <section id="recentWrap" hidden>
+    <div class="section-head">
+      <h2>Recently used</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="chips" id="recentList"></div>
+  </section>
+
+  <!-- ============ TOOLS ============ -->
+  <div class="section-head">
+    <h2>All tools</h2>
+    <span class="rule"></span>
+  </div>
+
+  <main class="grid" id="grid">
+
+    <a class="card" href="tools/Calculator.html"
+       data-title="Calculator"
+       data-keywords="math numbers arithmetic calculate sum finance totals invoice">
+      <span class="icon g-indigo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2.5" width="16" height="19" rx="3.2"/>
+          <rect x="7.6" y="6" width="8.8" height="3.4" rx="1.1"/>
+          <circle cx="8.6" cy="13.6" r=".95" fill="currentColor" stroke="none"/>
+          <circle cx="12" cy="13.6" r=".95" fill="currentColor" stroke="none"/>
+          <circle cx="15.4" cy="13.6" r=".95" fill="currentColor" stroke="none"/>
+          <circle cx="8.6" cy="17.4" r=".95" fill="currentColor" stroke="none"/>
+          <circle cx="12" cy="17.4" r=".95" fill="currentColor" stroke="none"/>
+          <circle cx="15.4" cy="17.4" r=".95" fill="currentColor" stroke="none"/>
+        </svg>
+      </span>
+      <h3 class="card-title">Calculator</h3>
+      <p class="card-desc">Fast, accurate everyday math with a clean keypad and instant results.</p>
+      <span class="card-cta">
+        Open tool
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h13M13 6l6 6-6 6"/>
+        </svg>
+      </span>
+    </a>
+
+    <a class="card" href="tools/StickerForge_Studio.html"
+       data-title="StickerForge Studio"
+       data-keywords="design sticker graphic canvas editor create art label print forge">
+      <span class="icon g-amber" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 3.2l1.75 4.6 4.6 1.75-4.6 1.75L11 15.9 9.25 11.3 4.65 9.55l4.6-1.75L11 3.2z"/>
+          <path d="M18.2 14.4l.75 1.95 1.95.75-1.95.75-.75 1.95-.75-1.95-1.95-.75 1.95-.75.75-1.95z"/>
+          <path d="M5.4 16.6l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5.5-1.3z"/>
+        </svg>
+      </span>
+      <h3 class="card-title">StickerForge Studio</h3>
+      <p class="card-desc">Design and export custom stickers with a fast, layered canvas editor.</p>
+      <span class="card-cta">
+        Open tool
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h13M13 6l6 6-6 6"/>
+        </svg>
+      </span>
+    </a>
+
+    <a class="card" href="tools/Companies_Manager.html"
+       data-title="Companies Manager"
+       data-keywords="company companies crm contacts clients database records notes business">
+      <span class="icon g-cyan" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21h18"/>
+          <path d="M5 21V7.2L12 3l7 4.2V21"/>
+          <path d="M9.5 21v-5.2h5V21"/>
+          <path d="M9.2 9.2h.01M12 9.2h.01M14.8 9.2h.01M9.2 12.4h.01M12 12.4h.01M14.8 12.4h.01"/>
+        </svg>
+      </span>
+      <h3 class="card-title">Companies Manager</h3>
+      <p class="card-desc">Keep company records, contacts and notes organised in one tidy place.</p>
+      <span class="card-cta">
+        Open tool
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h13M13 6l6 6-6 6"/>
+        </svg>
+      </span>
+    </a>
+
+  </main>
+
+  <div class="empty" id="empty" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/>
+    </svg>
+    <div>No tools match that search.</div>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <span>© <span id="year"></span> Business Tools</span>
+    <div class="hints">
+      <span><kbd>/</kbd> search</span>
+      <span><kbd>Enter</kbd> open first</span>
+      <span><kbd>Esc</kbd> clear</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var root        = document.documentElement;
+  var themeToggle = document.getElementById("themeToggle");
+  var searchInput = document.getElementById("search");
+  var cards       = Array.prototype.slice.call(document.querySelectorAll(".card"));
+  var emptyState  = document.getElementById("empty");
+  var recentWrap  = document.getElementById("recentWrap");
+  var recentList  = document.getElementById("recentList");
+  var greetingEl  = document.getElementById("greeting");
+  var clockEl     = document.getElementById("clock");
+  var dateEl      = document.getElementById("date");
+
+  /* ---------------- THEME ---------------- */
+  function applyTheme(theme) {
+    root.setAttribute("data-theme", theme);
+    try { localStorage.setItem("bt-theme", theme); } catch (e) {}
+  }
+
+  var storedTheme = null;
+  try { storedTheme = localStorage.getItem("bt-theme"); } catch (e) {}
+
+  var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(storedTheme || (prefersDark ? "dark" : "light"));
+
+  themeToggle.addEventListener("click", function () {
+    applyTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  });
+
+  /* ================= LIVE CLOCK =================
+     Runs on requestAnimationFrame, but only touches the DOM
+     when the second actually changes. It also syncs the first
+     paint to the exact start of the next second so the digits
+     flip in rhythm with real time instead of drifting.
+     rAF automatically pauses in background tabs — no CPU burn.
+     ============================================== */
+  var lastSecond  = -1;
+  var lastHour    = -1;
+  var frameId     = null;
+
+  function currentGreeting(h) {
+    if (h < 5)  return "Still up";
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  }
+
+  function renderTime() {
+    var now = new Date();
+    var sec = now.getSeconds();
+    var hr  = now.getHours();
+
+    // Only write to the DOM once per second (and only when text really changes)
+    if (sec !== lastSecond) {
+      lastSecond = sec;
+
+      clockEl.textContent = now.toLocaleTimeString([], {
+        hour:   "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      dateEl.textContent = now.toLocaleDateString([], {
+        weekday: "short",
+        month:   "short",
+        day:     "numeric"
+      });
+    }
+
+    // Greeting only needs to change when the hour rolls over
+    if (hr !== lastHour) {
+      lastHour = hr;
+      greetingEl.textContent = currentGreeting(hr);
+    }
+  }
+
+  function loop() {
+    renderTime();
+    frameId = requestAnimationFrame(loop);
+  }
+
+  function startClock() {
+    if (frameId !== null) return;
+    renderTime();              // paint immediately, no blank "--:--:--"
+    frameId = requestAnimationFrame(loop);
+  }
+
+  function stopClock() {
+    if (frameId === null) return;
+    cancelAnimationFrame(frameId);
+    frameId = null;
+  }
+
+  startClock();
+
+  // When the tab comes back into view, resync instantly so the
+  // clock never shows a stale value after being backgrounded.
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      stopClock();
+    } else {
+      lastSecond = -1;   // force a fresh render
+      lastHour   = -1;
+      startClock();
+    }
+  });
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  /* ---------------- SEARCH / FILTER ---------------- */
+  function filterCards() {
+    var q = searchInput.value.trim().toLowerCase();
+    var visible = 0;
+
+    cards.forEach(function (card) {
+      var haystack = ((card.dataset.title || "") + " " + (card.dataset.keywords || "")).toLowerCase();
+      var match = !q || haystack.indexOf(q) !== -1;
+      card.classList.toggle("is-hidden", !match);
+      if (match) visible++;
+    });
+
+    emptyState.hidden = visible !== 0;
+  }
+
+  searchInput.addEventListener("input", filterCards);
+
+  /* Keyboard shortcuts */
+  document.addEventListener("keydown", function (e) {
+    var active = document.activeElement;
+
+    if (e.key === "/" && active !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+
+    if (e.key === "Escape" && active === searchInput) {
+      searchInput.value = "";
+      filterCards();
+      searchInput.blur();
+    }
+  });
+
+  searchInput.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    var first = cards.filter(function (c) { return !c.classList.contains("is-hidden"); })[0];
+    if (first) first.click();
+  });
+
+  /* ---------------- RECENTLY USED ---------------- */
+  function getRecent() {
+    try {
+      var raw = JSON.parse(localStorage.getItem("bt-recent"));
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function renderRecent() {
+    var list = getRecent();
+    recentWrap.hidden = list.length === 0;
+    recentList.innerHTML = "";
+
+    list.forEach(function (item) {
+      var a = document.createElement("a");
+      a.className = "chip";
+      a.href = item.href;
+      a.textContent = item.title;
+      recentList.appendChild(a);
+    });
+  }
+
+  function pushRecent(item) {
+    var list = getRecent().filter(function (x) { return x.href !== item.href; });
+    list.unshift(item);
+    try { localStorage.setItem("bt-recent", JSON.stringify(list.slice(0, 4))); } catch (e) {}
+    renderRecent();
+  }
+
+  cards.forEach(function (card) {
+    card.addEventListener("click", function () {
+      pushRecent({
+        href: card.getAttribute("href"),
+        title: card.dataset.title || "Tool"
+      });
+    });
+
+    /* Pointer-follow glow */
+    card.addEventListener("pointermove", function (e) {
+      var r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+      card.style.setProperty("--my", (e.clientY - r.top) + "px");
+    });
+  });
+
+  renderRecent();
+})();
+</script>
+</body>
+</html>

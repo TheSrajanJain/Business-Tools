@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Calculator - Srajan Jain</title>
+<style>
+/* ================= THEME TOKENS ================= */
+:root{
+  --bg:#eef1f7;
+  --surface:#ffffff;
+  --surface-2:#f5f7fb;
+  --hover:#eceffa;
+  --text:#0d1117;
+  --muted:#6b7280;
+  --border:#e2e6f0;
+  --accent:#4f46e5;
+  --accent-2:#7c3aed;
+  --accent-soft:rgba(79,70,229,.10);
+  --accent-soft-2:rgba(79,70,229,.18);
+  --danger:#e11d48;
+  --ok:#059669;
+  --glow:rgba(79,70,229,.13);
+  --shadow:0 12px 34px -12px rgba(16,19,26,.20);
+  --scroll:rgba(0,0,0,.14);
+}
+[data-theme="dark"]{
+  --bg:#080b11;
+  --surface:#12161f;
+  --surface-2:#1a1f2b;
+  --hover:#222838;
+  --text:#eef1f7;
+  --muted:#8993a7;
+  --border:#242b39;
+  --accent:#7c8cff;
+  --accent-2:#a78bfa;
+  --accent-soft:rgba(124,140,255,.14);
+  --accent-soft-2:rgba(124,140,255,.24);
+  --danger:#ff5c7a;
+  --ok:#34d399;
+  --glow:rgba(124,140,255,.12);
+  --shadow:0 14px 40px -14px rgba(0,0,0,.75);
+  --scroll:rgba(255,255,255,.14);
+}
+
+/* ================= BASE ================= */
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(720px circle at 12% -10%,var(--glow),transparent 62%),
+             radial-gradient(560px circle at 92% 108%,var(--glow),transparent 60%);
+}
+button,input,select{font-family:inherit;color:inherit;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:99px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ================= LAYOUT ================= */
+.app{
+  position:relative;z-index:1;
+  height:100vh;height:100dvh;
+  max-width:1440px;margin:0 auto;
+  padding:14px;display:flex;flex-direction:column;gap:12px;
+}
+
+/* ================= TOPBAR ================= */
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1rem;letter-spacing:-.02em;margin-right:4px;}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 0 14px var(--accent);}
+.spacer{flex:1;}
+
+.tabs{display:flex;gap:3px;background:var(--surface);padding:4px;border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.tab{
+  border:0;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:10px;cursor:pointer;
+  font-size:.83rem;font-weight:700;letter-spacing:.01em;transition:.18s;
+  white-space:nowrap;
+}
+.tab:hover:not(.active){color:var(--text);background:var(--surface-2);}
+.tab.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 5px 16px -6px var(--accent);}
+
+.icon-btn{
+  width:40px;height:40px;flex:0 0 auto;border-radius:12px;
+  border:1px solid var(--border);background:var(--surface);color:var(--muted);
+  display:grid;place-items:center;cursor:pointer;font-size:1.05rem;transition:.18s;
+}
+.icon-btn:hover{color:var(--text);background:var(--surface-2);transform:translateY(-1px);}
+.icon-btn:active{transform:scale(.94);}
+
+/* ================= MAIN ================= */
+.main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px;min-height:0;}
+.panel{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:24px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;
+}
+.view{display:flex;flex-direction:column;height:100%;min-height:0;}
+[hidden]{display:none !important;}
+
+/* ================= DISPLAY ================= */
+.display{
+  padding:16px 18px 12px;display:flex;flex-direction:column;gap:4px;
+  border-bottom:1px solid var(--border);flex:0 0 auto;
+}
+.display-meta{display:flex;align-items:center;gap:6px;min-height:24px;flex-wrap:wrap;}
+.chip{
+  border:1px solid var(--border);background:var(--surface-2);color:var(--muted);
+  font-size:.66rem;font-weight:800;letter-spacing:.07em;
+  padding:4px 8px;border-radius:7px;cursor:pointer;transition:.16s;
+}
+.chip:hover{color:var(--text);border-color:var(--accent);}
+.chip.on{background:var(--accent-soft);color:var(--accent);border-color:transparent;}
+.expr{
+  font-size:1rem;color:var(--muted);text-align:right;
+  white-space:nowrap;overflow-x:auto;overflow-y:hidden;
+  min-height:24px;line-height:24px;scrollbar-width:none;
+  font-variant-numeric:tabular-nums;
+}
+.expr::-webkit-scrollbar{display:none;}
+.result{
+  font-size:clamp(1.9rem,5.2vw,3.1rem);font-weight:800;letter-spacing:-.03em;
+  text-align:right;white-space:nowrap;overflow-x:auto;overflow-y:hidden;
+  line-height:1.15;padding-bottom:4px;scrollbar-width:none;
+  font-variant-numeric:tabular-nums;transition:opacity .18s,color .18s;
+}
+.result::-webkit-scrollbar{display:none;}
+.result.preview{opacity:.5;font-weight:700;}
+.result.err{color:var(--danger);}
+.result.pop{animation:pop .22s ease;}
+@keyframes pop{0%{transform:scale(.97);opacity:.5;}100%{transform:scale(1);opacity:1;}}
+
+/* ================= KEYPAD ================= */
+.keypad{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:12px;display:grid;gap:8px;
+  grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));
+  grid-auto-rows:minmax(46px,1fr);
+}
+.key{
+  border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+  border-radius:16px;font-size:1.02rem;font-weight:650;font-family:inherit;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  padding:4px;min-height:46px;user-select:none;-webkit-tap-highlight-color:transparent;
+  transition:background .14s,transform .06s,border-color .14s,color .14s,box-shadow .14s;
+}
+.key:hover{background:var(--hover);}
+.key:active{transform:scale(.94);}
+.key.op{color:var(--accent);background:var(--accent-soft);border-color:transparent;font-size:1.18rem;font-weight:700;}
+.key.op:hover{background:var(--accent-soft-2);}
+.key.fn{color:var(--muted);font-size:.9rem;font-weight:700;}
+.key.fn:hover{color:var(--text);}
+.key.red{color:var(--danger);}
+.key.eq{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  border-color:transparent;font-size:1.35rem;font-weight:700;
+  box-shadow:0 8px 22px -8px var(--accent);
+}
+.key.eq:hover{filter:brightness(1.08);}
+
+/* ================= HISTORY ================= */
+.history{
+  background:var(--surface);border:1px solid var(--border);border-radius:24px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden;
+}
+.hist-head{
+  padding:14px 14px 10px;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.hist-head h2{margin:0;font-size:.86rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+.mini{
+  border:1px solid var(--border);background:var(--surface-2);color:var(--muted);
+  font-size:.7rem;font-weight:800;padding:5px 9px;border-radius:8px;cursor:pointer;transition:.16s;
+}
+.mini:hover{color:var(--danger);border-color:var(--danger);}
+.hist-search{padding:10px 12px 6px;}
+.hist-search input{
+  width:100%;padding:9px 12px;border-radius:11px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text);font-size:.84rem;outline:none;transition:.16s;
+}
+.hist-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.hist-search input::placeholder{color:var(--muted);}
+.hist-list{flex:1;min-height:0;overflow-y:auto;padding:6px 10px 14px;display:flex;flex-direction:column;gap:6px;}
+.hist-item{
+  display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:13px;
+  background:var(--surface-2);border:1px solid transparent;transition:.15s;
+  animation:fadeIn .22s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+.hist-item:hover{border-color:var(--border);background:var(--hover);}
+.hist-main{flex:1;min-width:0;cursor:pointer;}
+.hist-expr{
+  font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;margin-bottom:2px;
+}
+.hist-expr:hover{color:var(--accent);}
+.hist-res{
+  font-size:1.02rem;font-weight:750;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;font-variant-numeric:tabular-nums;
+}
+.hist-res:hover{color:var(--accent);}
+.hist-del{
+  border:0;background:transparent;color:var(--muted);cursor:pointer;
+  font-size:.78rem;padding:5px 7px;border-radius:8px;opacity:0;transition:.15s;flex:0 0 auto;
+}
+.hist-item:hover .hist-del{opacity:1;}
+.hist-del:hover{background:rgba(225,29,72,.14);color:var(--danger);}
+.empty{
+  text-align:center;color:var(--muted);font-size:.82rem;padding:32px 10px;line-height:1.6;
+}
+.empty span{font-size:1.7rem;display:block;margin-bottom:8px;opacity:.5;}
+
+/* ================= CONVERTER ================= */
+.conv{padding:18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.field select,.field input{
+  width:100%;padding:12px 13px;border-radius:13px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text);font-size:.95rem;outline:none;transition:.16s;
+}
+.field select:focus,.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.conv-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end;}
+.conv-grid .field input{font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;}
+.swap-btn{
+  width:44px;height:44px;border-radius:13px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--accent);font-size:1.15rem;cursor:pointer;
+  display:grid;place-items:center;transition:.18s;margin-bottom:1px;
+}
+.swap-btn:hover{background:var(--accent-soft);transform:rotate(180deg);}
+.conv-note{
+  font-size:.8rem;color:var(--muted);text-align:center;padding:12px;
+  background:var(--surface-2);border-radius:13px;border:1px dashed var(--border);
+  font-variant-numeric:tabular-nums;line-height:1.6;
+}
+.conv-note b{color:var(--accent);font-weight:800;}
+
+/* ================= PROGRAMMER ================= */
+.prog{padding:18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;}
+.base-tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:12px;border:1px solid var(--border);}
+.base-tabs button{
+  flex:1;border:0;background:transparent;color:var(--muted);padding:8px;border-radius:9px;
+  font-size:.78rem;font-weight:800;cursor:pointer;transition:.16s;
+}
+.base-tabs button.active{background:var(--accent);color:#fff;}
+.base-outputs{display:flex;flex-direction:column;gap:8px;}
+.base-out{
+  display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:13px;
+  background:var(--surface-2);border:1px solid var(--border);
+}
+.base-out span{
+  font-size:.68rem;font-weight:800;letter-spacing:.08em;color:var(--muted);
+  width:38px;flex:0 0 auto;
+}
+.base-out b{
+  flex:1;font-size:1rem;font-weight:750;word-break:break-all;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+.base-out button{
+  border:0;background:transparent;color:var(--muted);cursor:pointer;
+  font-size:.7rem;font-weight:800;padding:5px 8px;border-radius:8px;transition:.15s;
+}
+.base-out button:hover{background:var(--accent-soft);color:var(--accent);}
+.bw-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;}
+.bw-row input,.bw-row select{
+  padding:11px 12px;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text);font-size:.92rem;outline:none;
+  font-family:ui-monospace,Menlo,Consolas,monospace;text-align:center;
+}
+.bw-row select{font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;}
+.bw-res{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;border-radius:13px;background:var(--accent-soft);border:1px solid transparent;
+}
+.bw-res span{font-size:.7rem;font-weight:800;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;}
+.bw-res b{font-size:1.15rem;font-weight:800;font-family:ui-monospace,Menlo,Consolas,monospace;}
+h3.sec{
+  margin:2px 0 0;font-size:.7rem;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);
+}
+
+/* ================= TOAST ================= */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);
+  background:var(--text);color:var(--bg);padding:11px 20px;border-radius:12px;
+  font-size:.84rem;font-weight:700;opacity:0;pointer-events:none;
+  transition:.26s cubic-bezier(.2,.9,.3,1.3);z-index:200;box-shadow:0 12px 30px -8px rgba(0,0,0,.5);
+}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+
+/* ================= RESPONSIVE ================= */
+.scrim{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
+  z-index:40;opacity:0;pointer-events:none;transition:.25s;
+}
+.scrim.show{opacity:1;pointer-events:auto;}
+#histToggle{display:none;}
+
+@media(max-width:920px){
+  .main{grid-template-columns:1fr;}
+  #histToggle{display:grid;}
+  .history{
+    position:fixed;top:0;right:0;bottom:0;width:min(360px,88vw);z-index:50;
+    border-radius:24px 0 0 24px;transform:translateX(105%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+  }
+  .history.open{transform:none;}
+}
+@media(max-width:560px){
+  .app{padding:9px;gap:9px;}
+  .brand span.name{display:none;}
+  .tab{padding:8px 11px;font-size:.76rem;}
+  .key{border-radius:14px;font-size:.95rem;min-height:44px;}
+  .key.op{font-size:1.1rem;}
+  .display{padding:12px 14px 10px;}
+  .keypad{padding:9px;gap:6px;}
+  .conv-grid{grid-template-columns:1fr;gap:8px;}
+  .swap-btn{width:100%;transform:none;}
+  .swap-btn:hover{transform:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ TOPBAR ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span class="name">All Purpose Calculator</span>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-mode="standard">Standard</button>
+      <button class="tab" data-mode="scientific">Scientific</button>
+      <button class="tab" data-mode="converter">Converter</button>
+      <button class="tab" data-mode="programmer">Programmer</button>
+    </nav>
+
+    <span class="spacer"></span>
+
+    <button class="icon-btn" id="histToggle" title="History">☰</button>
+    <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <!-- ---- Calculator Panel ---- -->
+    <section class="panel">
+
+      <!-- Standard / Scientific -->
+      <div class="view" id="view-calc">
+        <div class="display">
+          <div class="display-meta">
+            <button class="chip" id="chipAngle" title="Angle unit">DEG</button>
+            <button class="chip" id="chipMem" title="Memory">M</button>
+            <button class="chip" id="chipAns" title="Last answer">ANS</button>
+            <span class="spacer"></span>
+            <button class="chip" id="chipCopy" title="Copy result">⧉ COPY</button>
+          </div>
+          <div class="expr" id="exprLine"></div>
+          <div class="result" id="resultLine">0</div>
+        </div>
+        <div class="keypad" id="keypad"></div>
+      </div>
+
+      <!-- Converter -->
+      <div class="view" id="view-converter" hidden>
+        <div class="conv">
+          <div class="field">
+            <label>Category</label>
+            <select id="convCat"></select>
+          </div>
+          <div class="conv-grid">
+            <div class="field">
+              <label>From</label>
+              <input id="convFromVal" type="text" inputmode="decimal" value="1" spellcheck="false">
+              <select id="convFromUnit"></select>
+            </div>
+            <button class="swap-btn" id="convSwap" title="Swap units">⇄</button>
+            <div class="field">
+              <label>To</label>
+              <input id="convToVal" type="text" readonly value="">
+              <select id="convToUnit"></select>
+            </div>
+          </div>
+          <div class="conv-note" id="convNote"></div>
+        </div>
+      </div>
+
+      <!-- Programmer -->
+      <div class="view" id="view-programmer" hidden>
+        <div class="prog">
+          <div class="field">
+            <label>Value</label>
+            <input id="progInput" type="text" value="255" spellcheck="false" autocomplete="off">
+          </div>
+          <div class="base-tabs" id="baseTabs">
+            <button data-base="16">HEX</button>
+            <button data-base="10" class="active">DEC</button>
+            <button data-base="8">OCT</button>
+            <button data-base="2">BIN</button>
+          </div>
+
+          <div class="base-outputs">
+            <div class="base-out"><span>HEX</span><b id="pHex">FF</b><button data-copy="pHex">COPY</button></div>
+            <div class="base-out"><span>DEC</span><b id="pDec">255</b><button data-copy="pDec">COPY</button></div>
+            <div class="base-out"><span>OCT</span><b id="pOct">377</b><button data-copy="pOct">COPY</button></div>
+            <div class="base-out"><span>BIN</span><b id="pBin">11111111</b><button data-copy="pBin">COPY</button></div>
+          </div>
+
+          <h3 class="sec">Bitwise Operations</h3>
+          <div class="bw-row">
+            <input id="bwA" type="text" value="12" spellcheck="false">
+            <select id="bwOp">
+              <option value="and">AND</option>
+              <option value="or">OR</option>
+              <option value="xor">XOR</option>
+              <option value="nand">NAND</option>
+              <option value="nor">NOR</option>
+              <option value="shl">A &lt;&lt; B</option>
+              <option value="shr">A &gt;&gt; B</option>
+            </select>
+            <input id="bwB" type="text" value="10" spellcheck="false">
+          </div>
+          <div class="bw-res"><span>Result</span><b id="bwRes">8</b></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ---- History Panel ---- -->
+    <aside class="history" id="historyPanel">
+      <div class="hist-head">
+        <h2>History</h2>
+        <span class="spacer"></span>
+        <button class="mini" id="clearHist">CLEAR</button>
+      </div>
+      <div class="hist-search">
+        <input id="histSearch" type="text" placeholder="Search history…" spellcheck="false">
+      </div>
+      <div class="hist-list" id="histList"></div>
+    </aside>
+
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   1. MATH ENGINE
+   ========================================================================== */
+
+const CONSTANTS = {
+  pi: Math.PI,
+  e: Math.E,
+  tau: Math.PI * 2,
+  phi: (1 + Math.sqrt(5)) / 2
+};
+
+function toRad(x, mode){
+  if (mode === 'deg')  return x * Math.PI / 180;
+  if (mode === 'grad') return x * Math.PI / 200;
+  return x;
+}
+function fromRad(x, mode){
+  if (mode === 'deg')  return x * 180 / Math.PI;
+  if (mode === 'grad') return x * 200 / Math.PI;
+  return x;
+}
+
+/* Lanczos gamma — enables non-integer factorials */
+const G_P = [
+  0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+  771.32342877765313, -176.61502916214059, 12.507343278686905,
+  -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7
+];
+function gammaFn(z){
+  if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gammaFn(1 - z));
+  z -= 1;
+  let x = G_P[0];
+  for (let i = 1; i < 9; i++) x += G_P[i] / (z + i);
+  const t = z + 7.5;
+  return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+}
+function factorialFn(n){
+  if (Number.isInteger(n)){
+    if (n < 0) throw new Error('Factorial of negative integer');
+    if (n > 170) return Infinity;
+    let r = 1;
+    for (let i = 2; i <= n; i++) r *= i;
+    return r;
+  }
+  return gammaFn(n + 1);
+}
+function nCr(n, r){
+  if (r < 0 || r > n) return 0;
+  r = Math.min(r, n - r);
+  let res = 1;
+  for (let i = 1; i <= r; i++) res = res * (n - r + i) / i;
+  return Math.round(res * 1e10) / 1e10;
+}
+function nPr(n, r){
+  if (r < 0 || r > n) return 0;
+  let res = 1;
+  for (let i = 0; i < r; i++) res *= (n - i);
+  return res;
+}
+function gcd2(a, b){
+  a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b));
+  while (b){ [a, b] = [b, a % b]; }
+  return a;
+}
+function lcm2(a, b){
+  a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b));
+  if (!a || !b) return 0;
+  return a / gcd2(a, b) * b;
+}
+
+const FUNCS = {
+  sin:  (a, c) => Math.sin(toRad(a[0], c.angle)),
+  cos:  (a, c) => Math.cos(toRad(a[0], c.angle)),
+  tan:  (a, c) => Math.tan(toRad(a[0], c.angle)),
+  asin: (a, c) => fromRad(Math.asin(a[0]), c.angle),
+  acos: (a, c) => fromRad(Math.acos(a[0]), c.angle),
+  atan: (a, c) => fromRad(Math.atan(a[0]), c.angle),
+  sinh: a => Math.sinh(a[0]),
+  cosh: a => Math.cosh(a[0]),
+  tanh: a => Math.tanh(a[0]),
+  asinh:a => Math.asinh(a[0]),
+  acosh:a => Math.acosh(a[0]),
+  atanh:a => Math.atanh(a[0]),
+  ln:   a => Math.log(a[0]),
+  log:  a => a.length > 1 ? Math.log(a[0]) / Math.log(a[1]) : Math.log10(a[0]),
+  log2: a => Math.log2(a[0]),
+  log10:a => Math.log10(a[0]),
+  sqrt: a => Math.sqrt(a[0]),
+  cbrt: a => Math.cbrt(a[0]),
+  root: a => Math.sign(a[0]) * Math.pow(Math.abs(a[0]), 1 / a[1]),
+  abs:  a => Math.abs(a[0]),
+  exp:  a => Math.exp(a[0]),
+  floor:a => Math.floor(a[0]),
+  ceil: a => Math.ceil(a[0]),
+  round:a => Math.round(a[0]),
+  sign: a => Math.sign(a[0]),
+  fact: a => factorialFn(a[0]),
+  gamma:a => gammaFn(a[0]),
+  ncr:  a => nCr(a[0], a[1]),
+  npr:  a => nPr(a[0], a[1]),
+  gcd:  a => a.reduce((x, y) => gcd2(x, y)),
+  lcm:  a => a.reduce((x, y) => lcm2(x, y)),
+  min:  a => Math.min(...a),
+  max:  a => Math.max(...a),
+  hypot:a => Math.hypot(...a),
+  rand: () => Math.random(),
+  randint: a => Math.floor(Math.random() * (a[1] - a[0] + 1)) + a[0],
+  deg:  a => a[0] * 180 / Math.PI,
+  rad:  a => a[0] * Math.PI / 180
+};
+
+/* ---------- Normalisation ---------- */
+function normalizeExpr(s){
+  return String(s)
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+    .replace(/[−–—]/g, '-')
+    .replace(/π/g, 'pi')
+    .replace(/√/g, 'sqrt')
+    .replace(/∛/g, 'cbrt')
+    .replace(/²/g, '^2')
+    .replace(/³/g, '^3')
+    .replace(/τ/g, 'tau')
+    .replace(/φ/g, 'phi')
+    .replace(/\s+/g, '');
+}
+
+/* ---------- Tokenizer ---------- */
+function tokenize(src){
+  const s = normalizeExpr(src);
+  const out = [];
+  let i = 0;
+
+  while (i < s.length){
+    const c = s[i];
+
+    /* number */
+    if ((c >= '0' && c <= '9') || c === '.'){
+      let j = i, dot = false;
+      while (j < s.length && ((s[j] >= '0' && s[j] <= '9') || s[j] === '.')){
+        if (s[j] === '.'){ if (dot) break; dot = true; }
+        j++;
+      }
+      if (j < s.length && (s[j] === 'e' || s[j] === 'E')){
+        let k = j + 1;
+        if (s[k] === '+' || s[k] === '-') k++;
+        if (k < s.length && s[k] >= '0' && s[k] <= '9'){
+          while (k < s.length && s[k] >= '0' && s[k] <= '9') k++;
+          j = k;
+        }
+      }
+      const num = parseFloat(s.slice(i, j));
+      if (Number.isNaN(num)) throw new Error('Bad number');
+      out.push({ t: 'num', v: num });
+      i = j;
+      continue;
+    }
+
+    /* identifier */
+    if (/[a-zA-Z]/.test(c)){
+      let j = i;
+      while (j < s.length && /[a-zA-Z]/.test(s[j])) j++;
+      let name = s.slice(i, j).toLowerCase();
+      if (name === 'log'){
+        let k = j;
+        while (k < s.length && s[k] >= '0' && s[k] <= '9') k++;
+        const suf = s.slice(j, k);
+        if (suf === '2' || suf === '10'){ name = 'log' + suf; j = k; }
+      }
+      out.push(name === 'mod' ? { t: 'op', v: 'mod' } : { t: 'id', v: name });
+      i = j;
+      continue;
+    }
+
+    /* punctuation */
+    if (c === '('){ out.push({ t: 'lp' }); i++; continue; }
+    if (c === ')'){ out.push({ t: 'rp' }); i++; continue; }
+    if (c === ','){ out.push({ t: 'comma' }); i++; continue; }
+    if ('+-*/^%!'.includes(c)){ out.push({ t: 'op', v: c }); i++; continue; }
+
+    throw new Error('Unexpected character: ' + c);
+  }
+  return out;
+}
+
+/* ---------- Implicit multiplication ---------- */
+function isValueEnd(tk){
+  if (!tk) return false;
+  if (tk.t === 'num' || tk.t === 'rp') return true;
+  if (tk.t === 'id') return (tk.v in CONSTANTS) || tk.v === 'ans' || tk.v === 'mem';
+  if (tk.t === 'op' && (tk.v === '!' || tk.v === '%')) return true;
+  return false;
+}
+function isValueStart(tk){
+  if (!tk) return false;
+  if (tk.t === 'num' || tk.t === 'lp' || tk.t === 'id') return true;
+  return false;
+}
+function insertImplicit(tokens){
+  const out = [];
+  for (const tk of tokens){
+    if (out.length && isValueEnd(out[out.length - 1]) && isValueStart(tk)){
+      out.push({ t: 'op', v: '*' });
+    }
+    out.push(tk);
+  }
+  return out;
+}
+
+/* ---------- Recursive-descent parser / evaluator ---------- */
+function evaluate(exprStr, ctx){
+  const raw = tokenize(exprStr);
+  if (!raw.length) throw new Error('Empty expression');
+  const tokens = insertImplicit(raw);
+  let pos = 0;
+
+  const peek = () => tokens[pos];
+  const next = () => tokens[pos++];
+
+  function parseExpression(){
+    let left = parseTerm();
+    while (peek() && peek().t === 'op' && (peek().v === '+' || peek().v === '-')){
+      const op = next().v;
+      const right = parseTerm();
+      left = op === '+' ? left + right : left - right;
+    }
+    return left;
+  }
+
+  function parseTerm(){
+    let left = parseUnary();
+    while (peek()){
+      const p = peek();
+      if (p.t === 'op' && (p.v === '*' || p.v === '/' || p.v === 'mod')){
+        next();
+        const right = parseUnary();
+        if (p.v === '*') left *= right;
+        else if (p.v === '/') left /= right;
+        else left = left % right;
+      } else break;
+    }
+    return left;
+  }
+
+  function parseUnary(){
+    const p = peek();
+    if (p && p.t === 'op' && (p.v === '-' || p.v === '+')){
+      next();
+      const v = parseUnary();
+      return p.v === '-' ? -v : v;
+    }
+    return parsePower();
+  }
+
+  function parsePower(){
+    const base = parsePostfix();
+    const p = peek();
+    if (p && p.t === 'op' && p.v === '^'){
+      next();
+      const exp = parseUnary();     /* right-associative */
+      return Math.pow(base, exp);
+    }
+    return base;
+  }
+
+  function parsePostfix(){
+    let v = parsePrimary();
+    while (peek()){
+      const p = peek();
+      if (p.t === 'op' && p.v === '!'){ next(); v = factorialFn(v); }
+      else if (p.t === 'op' && p.v === '%'){ next(); v = v / 100; }
+      else break;
+    }
+    return v;
+  }
+
+  function parsePrimary(){
+    const p = next();
+    if (!p) throw new Error('Incomplete expression');
+
+    if (p.t === 'num') return p.v;
+
+    if (p.t === 'lp'){
+      const v = parseExpression();
+      const c = next();
+      if (!c || c.t !== 'rp') throw new Error('Missing )');
+      return v;
+    }
+
+    if (p.t === 'id'){
+      const name = p.v;
+      if (name in CONSTANTS) return CONSTANTS[name];
+      if (name === 'ans') return ctx.ans;
+      if (name === 'mem') return ctx.mem;
+
+      if (name in FUNCS){
+        if (!peek() || peek().t !== 'lp') throw new Error('Missing ( after ' + name);
+        next();
+        const args = [];
+        if (peek() && peek().t === 'rp'){ next(); }
+        else {
+          args.push(parseExpression());
+          while (peek() && peek().t === 'comma'){ next(); args.push(parseExpression()); }
+          const c = next();
+          if (!c || c.t !== 'rp') throw new Error('Missing )');
+        }
+        return FUNCS[name](args, ctx);
+      }
+      throw new Error('Unknown: ' + name);
+    }
+
+    throw new Error('Unexpected token');
+  }
+
+  const result = parseExpression();
+  if (pos < tokens.length) throw new Error('Unexpected token');
+  if (typeof result !== 'number' || Number.isNaN(result)) throw new Error('Not a number');
+  return result;
+}
+
+/* ==========================================================================
+   2. NUMBER FORMATTING
+   ========================================================================== */
+
+function fmt(n){
+  if (typeof n !== 'number' || Number.isNaN(n)) return 'Error';
+  if (!isFinite(n)) return n > 0 ? '∞' : '−∞';
+  if (n === 0) return '0';
+
+  const abs = Math.abs(n);
+  if (abs >= 1e15 || abs < 1e-9){
+    let s = n.toExponential(9);
+    s = s.replace(/\.?0+e/, 'e').replace('e+', 'e');
+    return s.replace('-', '−');
+  }
+
+  let s = parseFloat(n.toPrecision(13)).toString();
+  const neg = s.startsWith('-');
+  if (neg) s = s.slice(1);
+  const parts = s.split('.');
+  const grouped = Number(parts[0]).toLocaleString('en-US');
+  return (neg ? '−' : '') + grouped + (parts[1] !== undefined ? '.' + parts[1] : '');
+}
+
+function rawNum(n){
+  if (!isFinite(n)) return String(n);
+  return parseFloat(n.toPrecision(13)).toString();
+}
+
+/* Adds thousand separators to integers inside an expression string */
+function prettify(s){
+  if (!s) return '';
+  return s.replace(/(^|[^\w.])(\d{4,})/g, (m, pre, num) => pre + Number(num).toLocaleString('en-US'));
+}
+
+const esc = s => String(s).replace(/[&<>"']/g,
+  c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* ==========================================================================
+   3. STATE
+   ========================================================================== */
+
+const LS_KEY = 'procalc.v1';
+
+const state = {
+  mode: 'standard',
+  theme: 'dark',
+  angle: 'deg',
+  expr: '',
+  prevExpr: '',
+  ans: 0,
+  mem: 0,
+  justEvaluated: false,
+  history: [],
+  base: 10
+};
+
+function save(){
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      mode: state.mode,
+      theme: state.theme,
+      angle: state.angle,
+      ans: state.ans,
+      mem: state.mem,
+      history: state.history.slice(0, 200)
+    }));
+  } catch (e) { /* storage unavailable */ }
+}
+
+function load(){
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    if (d.mode) state.mode = d.mode;
+    if (d.theme) state.theme = d.theme;
+    if (d.angle) state.angle = d.angle;
+    if (typeof d.ans === 'number') state.ans = d.ans;
+    if (typeof d.mem === 'number') state.mem = d.mem;
+    if (Array.isArray(d.history)) state.history = d.history;
+  } catch (e) { /* ignore */ }
+}
+
+/* ==========================================================================
+   4. DOM HELPERS
+   ========================================================================== */
+
+const $ = sel => document.querySelector(sel);
+
+const el = {
+  keypad:      $('#keypad'),
+  exprLine:    $('#exprLine'),
+  resultLine:  $('#resultLine'),
+  chipAngle:   $('#chipAngle'),
+  chipMem:     $('#chipMem'),
+  chipAns:     $('#chipAns'),
+  chipCopy:    $('#chipCopy'),
+  tabs:        $('#tabs'),
+  themeToggle: $('#themeToggle'),
+  histList:    $('#histList'),
+  histSearch:  $('#histSearch'),
+  clearHist:   $('#clearHist'),
+  histToggle:  $('#histToggle'),
+  historyPanel:$('#historyPanel'),
+  scrim:       $('#scrim'),
+  toast:       $('#toast'),
+  viewCalc:    $('#view-calc'),
+  viewConv:    $('#view-converter'),
+  viewProg:    $('#view-programmer')
+};
+
+/* ==========================================================================
+   5. CALCULATOR INPUT
+   ========================================================================== */
+
+function ctx(){ return { angle: state.angle, ans: state.ans, mem: state.mem }; }
+
+const CONTINUE_AFTER = ['+', '−', '-', '×', '*', '÷', '/', '^', '!', '%', ')', ','];
+
+function insert(text){
+  if (state.justEvaluated){
+    if (CONTINUE_AFTER.includes(text)){
+      state.justEvaluated = false;      /* keep the result and continue */
+    } else {
+      state.expr = '';                  /* start fresh */
+      state.justEvaluated = false;
+    }
+  }
+  if (state.expr.length > 400) return;
+  state.expr += text;
+  update();
+}
+
+function doAction(name){
+  switch (name){
+    case 'clear':
+      state.expr = '';
+      state.prevExpr = '';
+      state.justEvaluated = false;
+      update();
+      break;
+
+    case 'back':
+      if (state.justEvaluated){
+        state.expr = '';
+        state.justEvaluated = false;
+      } else {
+        state.expr = state.expr.slice(0, -1);
+      }
+      update();
+      break;
+
+    case 'neg': toggleSign(); break;
+
+    case 'eq': equals(); break;
+
+    case 'mc':
+      state.mem = 0;
+      save(); updateChips(); toast('Memory cleared');
+      break;
+
+    case 'mr':
+      if (state.mem !== 0) insert(rawNum(state.mem));
+      else toast('Memory is empty');
+      break;
+
+    case 'ms':
+      try {
+        const v = evaluate(state.expr || '0', ctx());
+        state.mem = v;
+        save(); updateChips();
+        toast('Stored: ' + fmt(v));
+      } catch (e) { toast('Nothing to store'); }
+      break;
+
+    case 'mplus':
+    case 'mminus': {
+      try {
+        const v = evaluate(state.expr || '0', ctx());
+        state.mem += (name === 'mplus' ? v : -v);
+        save(); updateChips();
+        toast('Memory: ' + fmt(state.mem));
+      } catch (e) { toast('Invalid expression'); }
+      break;
+    }
+  }
+}
+
+function toggleSign(){
+  const m = state.expr.match(/(\d+\.?\d*)$/);
+  if (!m){ return; }
+  const start = state.expr.length - m[1].length;
+  const before = state.expr.slice(0, start);
+  if (/[−-]$/.test(before)){
+    const b2 = before.slice(0, -1);
+    if (b2 === '' || /[+\-−×÷*/^(,]$/.test(b2)){
+      state.expr = b2 + m[1];
+      update();
+      return;
+    }
+  }
+  state.expr = before + '−' + m[1];
+  update();
+}
+
+function equals(){
+  if (!state.expr.trim()) return;
+  const source = state.expr;
+  try {
+    const value = evaluate(source, ctx());
+    if (!isFinite(value) && !Number.isNaN(value)){
+      /* allow infinity to display */
+    }
+    state.ans = value;
+    state.prevExpr = source;
+    state.expr = rawNum(value);
+    state.justEvaluated = true;
+    addHistory(source, fmt(value));
+    update();
+    el.resultLine.classList.remove('pop');
+    void el.resultLine.offsetWidth;
+    el.resultLine.classList.add('pop');
+    save();
+  } catch (err){
+    el.resultLine.textContent = 'Error';
+    el.resultLine.classList.add('err');
+    el.resultLine.classList.remove('preview');
+    toast('Invalid expression');
+  }
+}
+
+function update(){
+  /* expression line */
+  if (state.justEvaluated){
+    el.exprLine.textContent = prettify(state.prevExpr) + ' =';
+  } else {
+    el.exprLine.textContent = prettify(state.expr);
+  }
+  el.exprLine.scrollLeft = el.exprLine.scrollWidth;
+
+  /* result line */
+  el.resultLine.classList.remove('err');
+
+  if (state.justEvaluated){
+    el.resultLine.textContent = fmt(state.ans);
+    el.resultLine.classList.remove('preview');
+  } else if (!state.expr.trim()){
+    el.resultLine.textContent = '0';
+    el.resultLine.classList.remove('preview');
+  } else {
+    try {
+      const v = evaluate(state.expr, ctx());
+      el.resultLine.textContent = fmt(v);
+      el.resultLine.classList.add('preview');
+    } catch (e){
+      el.resultLine.textContent = '';
+      el.resultLine.classList.remove('preview');
+    }
+  }
+  el.resultLine.scrollLeft = el.resultLine.scrollWidth;
+  updateChips();
+}
+
+function updateChips(){
+  el.chipAngle.textContent = state.angle.toUpperCase();
+  el.chipMem.classList.toggle('on', state.mem !== 0);
+  el.chipMem.title = 'Memory: ' + fmt(state.mem);
+  el.chipMem.textContent = state.mem !== 0 ? 'M' : 'M';
+}
+
+/* ==========================================================================
+   6. KEYPAD
+   ========================================================================== */
+
+const PADS = {
+  standard: {
+    cols: 4,
+    rows: [
+      [['MC', '#mc', 'fn'], ['MR', '#mr', 'fn'], ['M+', '#mplus', 'fn'], ['M−', '#mminus', 'fn']],
+      [['C', '#clear', 'fn red'], ['⌫', '#back', 'fn'], ['%', '%', 'op'], ['÷', '÷', 'op']],
+      [['7', '7', ''], ['8', '8', ''], ['9', '9', ''], ['×', '×', 'op']],
+      [['4', '4', ''], ['5', '5', ''], ['6', '6', ''], ['−', '−', 'op']],
+      [['1', '1', ''], ['2', '2', ''], ['3', '3', ''], ['+', '+', 'op']],
+      [['±', '#neg', 'fn'], ['0', '0', ''], ['.', '.', ''], ['=', '#eq', 'eq']]
+    ]
+  },
+  scientific: {
+    cols: 5,
+    rows: [
+      [['MC', '#mc', 'fn'], ['MR', '#mr', 'fn'], ['M+', '#mplus', 'fn'], ['M−', '#mminus', 'fn'], ['MS', '#ms', 'fn']],
+      [['sin', 'sin(', 'fn'], ['cos', 'cos(', 'fn'], ['tan', 'tan(', 'fn'], ['ln', 'ln(', 'fn'], ['log', 'log(', 'fn']],
+      [['sin⁻¹', 'asin(', 'fn'], ['cos⁻¹', 'acos(', 'fn'], ['tan⁻¹', 'atan(', 'fn'], ['eˣ', 'exp(', 'fn'], ['10ˣ', '10^', 'fn']],
+      [['x²', '^2', 'fn'], ['x³', '^3', 'fn'], ['xʸ', '^', 'fn'], ['√', 'sqrt(', 'fn'], ['∛', 'cbrt(', 'fn']],
+      [['(', '(', 'fn'], [')', ')', 'fn'], ['π', 'π', 'fn'], ['e', 'e', 'fn'], ['n!', '!', 'fn']],
+      [['7', '7', ''], ['8', '8', ''], ['9', '9', ''], ['÷', '÷', 'op'], ['⌫', '#back', 'fn']],
+      [['4', '4', ''], ['5', '5', ''], ['6', '6', ''], ['×', '×', 'op'], ['C', '#clear', 'fn red']],
+      [['1', '1', ''], ['2', '2', ''], ['3', '3', ''], ['−', '−', 'op'], ['±', '#neg', 'fn']],
+      [['0', '0', ''], ['.', '.', ''], ['%', '%', 'op'], ['+', '+', 'op'], ['=', '#eq', 'eq']]
+    ]
+  }
+};
+
+function renderKeypad(mode){
+  const pad = PADS[mode];
+  if (!pad) return;
+  el.keypad.style.setProperty('--cols', pad.cols);
+  let html = '';
+  for (const row of pad.rows){
+    for (const [label, val, cls] of row){
+      const action = val.startsWith('#') ? val.slice(1) : '';
+      const insertVal = action ? '' : val;
+      html += `<button class="key ${cls}" data-act="${esc(action)}" data-ins="${esc(insertVal)}">${esc(label)}</button>`;
+    }
+  }
+  el.keypad.innerHTML = html;
+}
+
+el.keypad.addEventListener('click', e => {
+  const btn = e.target.closest('.key');
+  if (!btn) return;
+  if (btn.dataset.act) doAction(btn.dataset.act);
+  else insert(btn.dataset.ins);
+});
+
+/* ==========================================================================
+   7. HISTORY
+   ========================================================================== */
+
+function addHistory(expr, res){
+  state.history.unshift({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    expr,
+    res,
+    ts: Date.now()
+  });
+  if (state.history.length > 200) state.history.length = 200;
+  save();
+  renderHistory();
+}
+
+function renderHistory(){
+  const q = (el.histSearch.value || '').trim().toLowerCase();
+  const items = q
+    ? state.history.filter(h => h.expr.toLowerCase().includes(q) || h.res.toLowerCase().includes(q))
+    : state.history;
+
+  if (!items.length){
+    el.histList.innerHTML = state.history.length
+      ? `<div class="empty"><span>🔍</span>No matching entries</div>`
+      : `<div class="empty"><span>🧮</span>No history yet<br>Your calculations will appear here</div>`;
+    return;
+  }
+
+  el.histList.innerHTML = items.map(h => `
+    <div class="hist-item" data-id="${esc(h.id)}">
+      <div class="hist-main">
+        <div class="hist-expr" data-load-expr="${esc(h.expr)}" title="Load expression">${esc(prettify(h.expr))}</div>
+        <div class="hist-res" data-load-res="${esc(h.res)}" title="Load result">${esc(h.res)}</div>
+      </div>
+      <button class="hist-del" data-del="${esc(h.id)}" title="Delete">✕</button>
+    </div>`).join('');
+}
+
+el.histList.addEventListener('click', e => {
+  const del = e.target.closest('[data-del]');
+  if (del){
+    state.history = state.history.filter(h => h.id !== del.dataset.del);
+    save();
+    renderHistory();
+    return;
+  }
+  const exprEl = e.target.closest('[data-load-expr]');
+  if (exprEl){
+    state.expr = exprEl.dataset.loadExpr;
+    state.justEvaluated = false;
+    update();
+    closeHistoryDrawer();
+    return;
+  }
+  const resEl = e.target.closest('[data-load-res]');
+  if (resEl){
+    state.expr = state.expr && !state.justEvaluated ? state.expr + resEl.dataset.loadRes : resEl.dataset.loadRes;
+    state.justEvaluated = false;
+    update();
+    closeHistoryDrawer();
+  }
+});
+
+el.histSearch.addEventListener('input', renderHistory);
+
+el.clearHist.addEventListener('click', () => {
+  if (!state.history.length) return;
+  state.history = [];
+  save();
+  renderHistory();
+  toast('History cleared');
+});
+
+/* ==========================================================================
+   8. UNIT CONVERTER
+   ========================================================================== */
+
+const CONV_DATA = {
+  Length: {
+    units: [
+      ['Meter', 'm', 1], ['Kilometer', 'km', 1000], ['Centimeter', 'cm', 0.01],
+      ['Millimeter', 'mm', 0.001], ['Micrometer', 'µm', 1e-6], ['Nanometer', 'nm', 1e-9],
+      ['Mile', 'mi', 1609.344], ['Yard', 'yd', 0.9144], ['Foot', 'ft', 0.3048],
+      ['Inch', 'in', 0.0254], ['Nautical mile', 'nmi', 1852],
+      ['Light year', 'ly', 9.4607304725808e15], ['Astronomical unit', 'AU', 1.495978707e11]
+    ]
+  },
+  Mass: {
+    units: [
+      ['Kilogram', 'kg', 1], ['Gram', 'g', 0.001], ['Milligram', 'mg', 1e-6],
+      ['Microgram', 'µg', 1e-9], ['Metric ton', 't', 1000], ['Pound', 'lb', 0.45359237],
+      ['Ounce', 'oz', 0.028349523125], ['Stone', 'st', 6.35029318],
+      ['US ton', 'ton', 907.18474], ['Imperial ton', 'long ton', 1016.0469088]
+    ]
+  },
+  Temperature: {
+    special: true,
+    units: [['Celsius', '°C'], ['Fahrenheit', '°F'], ['Kelvin', 'K'], ['Rankine', '°R']],
+    toBase: (v, u) => {
+      if (u === 'Fahrenheit') return (v - 32) * 5 / 9;
+      if (u === 'Kelvin') return v - 273.15;
+      if (u === 'Rankine') return (v - 491.67) * 5 / 9;
+      return v;
+    },
+    fromBase: (v, u) => {
+      if (u === 'Fahrenheit') return v * 9 / 5 + 32;
+      if (u === 'Kelvin') return v + 273.15;
+      if (u === 'Rankine') return (v + 273.15) * 9 / 5;
+      return v;
+    }
+  },
+  Area: {
+    units: [
+      ['Square meter', 'm²', 1], ['Square kilometer', 'km²', 1e6],
+      ['Square centimeter', 'cm²', 1e-4], ['Square millimeter', 'mm²', 1e-6],
+      ['Hectare', 'ha', 10000], ['Acre', 'ac', 4046.8564224],
+      ['Square mile', 'mi²', 2589988.110336], ['Square yard', 'yd²', 0.83612736],
+      ['Square foot', 'ft²', 0.09290304], ['Square inch', 'in²', 0.00064516]
+    ]
+  },
+  Volume: {
+    units: [
+      ['Liter', 'L', 1], ['Milliliter', 'mL', 0.001], ['Cubic meter', 'm³', 1000],
+      ['Cubic centimeter', 'cm³', 0.001], ['Gallon (US)', 'gal', 3.785411784],
+      ['Gallon (UK)', 'imp gal', 4.54609], ['Quart (US)', 'qt', 0.946352946],
+      ['Pint (US)', 'pt', 0.473176473], ['Cup (US)', 'cup', 0.2365882365],
+      ['Fluid ounce (US)', 'fl oz', 0.0295735295625], ['Tablespoon', 'tbsp', 0.01478676478],
+      ['Teaspoon', 'tsp', 0.00492892159], ['Cubic foot', 'ft³', 28.316846592],
+      ['Cubic inch', 'in³', 0.016387064]
+    ]
+  },
+  Speed: {
+    units: [
+      ['Meter/second', 'm/s', 1], ['Kilometer/hour', 'km/h', 0.2777777778],
+      ['Mile/hour', 'mph', 0.44704], ['Knot', 'kn', 0.5144444444],
+      ['Foot/second', 'ft/s', 0.3048], ['Mach', 'Ma', 340.29],
+      ['Speed of light', 'c', 299792458]
+    ]
+  },
+  Time: {
+    units: [
+      ['Second', 's', 1], ['Millisecond', 'ms', 0.001], ['Microsecond', 'µs', 1e-6],
+      ['Nanosecond', 'ns', 1e-9], ['Minute', 'min', 60], ['Hour', 'h', 3600],
+      ['Day', 'd', 86400], ['Week', 'wk', 604800], ['Month (30d)', 'mo', 2592000],
+      ['Year (365d)', 'yr', 31536000], ['Decade', 'dec', 315360000]
+    ]
+  },
+  Data: {
+    units: [
+      ['Bit', 'b', 1], ['Byte', 'B', 8], ['Kilobyte', 'KB', 8192],
+      ['Kibibyte', 'KiB', 8192], ['Megabyte', 'MB', 8388608],
+      ['Mebibyte', 'MiB', 8388608], ['Gigabyte', 'GB', 8589934592],
+      ['Gibibyte', 'GiB', 8589934592], ['Terabyte', 'TB', 8796093022208],
+      ['Tebibyte', 'TiB', 8796093022208], ['Petabyte', 'PB', 9007199254740992]
+    ]
+  },
+  Pressure: {
+    units: [
+      ['Pascal', 'Pa', 1], ['Kilopascal', 'kPa', 1000], ['Bar', 'bar', 100000],
+      ['PSI', 'psi', 6894.757293168], ['Atmosphere', 'atm', 101325],
+      ['Torr', 'Torr', 133.322368421], ['Millimeter of mercury', 'mmHg', 133.322387415]
+    ]
+  },
+  Energy: {
+    units: [
+      ['Joule', 'J', 1], ['Kilojoule', 'kJ', 1000], ['Calorie', 'cal', 4.184],
+      ['Kilocalorie', 'kcal', 4184], ['Watt-hour', 'Wh', 3600],
+      ['Kilowatt-hour', 'kWh', 3600000], ['Electronvolt', 'eV', 1.602176634e-19],
+      ['British thermal unit', 'BTU', 1055.05585262], ['Foot-pound', 'ft·lb', 1.3558179483314]
+    ]
+  },
+  Power: {
+    units: [
+      ['Watt', 'W', 1], ['Kilowatt', 'kW', 1000], ['Megawatt', 'MW', 1e6],
+      ['Horsepower (metric)', 'hp(M)', 735.49875],
+      ['Horsepower (mechanical)', 'hp(I)', 745.6998715823],
+      ['Foot-pound/second', 'ft·lb/s', 1.3558179483]
+    ]
+  },
+  Angle: {
+    units: [
+      ['Degree', '°', 1], ['Radian', 'rad', 57.29577951308232],
+      ['Gradian', 'grad', 0.9], ['Arcminute', '′', 1 / 60],
+      ['Arcsecond', '″', 1 / 3600], ['Turn', 'turn', 360]
+    ]
+  },
+  Frequency: {
+    units: [
+      ['Hertz', 'Hz', 1], ['Kilohertz', 'kHz', 1000], ['Megahertz', 'MHz', 1e6],
+      ['Gigahertz', 'GHz', 1e9], ['RPM', 'rpm', 1 / 60]
+    ]
+  }
+};
+
+const convEl = {
+  cat:      $('#convCat'),
+  fromVal:  $('#convFromVal'),
+  toVal:    $('#convToVal'),
+  fromUnit: $('#convFromUnit'),
+  toUnit:   $('#convToUnit'),
+  swap:     $('#convSwap'),
+  note:     $('#convNote')
+};
+let lastConvOut = 0;
+
+function initConverter(){
+  convEl.cat.innerHTML = Object.keys(CONV_DATA)
+    .map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join('');
+  fillUnits();
+  runConvert();
+}
+
+function fillUnits(){
+  const cat = convEl.cat.value;
+  const data = CONV_DATA[cat];
+  const opts = data.units.map(u =>
+    `<option value="${esc(u[0])}">${esc(u[0])}${u[1] ? ' (' + esc(u[1]) + ')' : ''}</option>`
+  ).join('');
+  convEl.fromUnit.innerHTML = opts;
+  convEl.toUnit.innerHTML = opts;
+  if (data.units.length > 1) convEl.toUnit.selectedIndex = 1;
+}
+
+function runConvert(){
+  const cat = convEl.cat.value;
+  const data = CONV_DATA[cat];
+  const from = convEl.fromUnit.value;
+  const to = convEl.toUnit.value;
+  const v = parseFloat(convEl.fromVal.value);
+
+  if (Number.isNaN(v)){
+    convEl.toVal.value = '';
+    convEl.note.innerHTML = 'Enter a value to convert';
+    return;
+  }
+
+  let out;
+  if (data.special){
+    out = data.fromBase(data.toBase(v, from), to);
+  } else {
+    const f = data.units.find(u => u[0] === from)[2];
+    const t = data.units.find(u => u[0] === to)[2];
+    out = v * f / t;
+  }
+  lastConvOut = out;
+  convEl.toVal.value = fmt(out);
+
+  const fSym = (data.units.find(u => u[0] === from) || [])[1] || '';
+  const tSym = (data.units.find(u => u[0] === to) || [])[1] || '';
+  convEl.note.innerHTML = `<b>${esc(fmt(v))}</b> ${esc(fSym)} &nbsp;=&nbsp; <b>${esc(fmt(out))}</b> ${esc(tSym)}`;
+}
+
+convEl.cat.addEventListener('change', () => { fillUnits(); runConvert(); });
+convEl.fromUnit.addEventListener('change', runConvert);
+convEl.toUnit.addEventListener('change', runConvert);
+convEl.fromVal.addEventListener('input', runConvert);
+convEl.swap.addEventListener('click', () => {
+  const a = convEl.fromUnit.value;
+  const b = convEl.toUnit.value;
+  convEl.fromUnit.value = b;
+  convEl.toUnit.value = a;
+  if (isFinite(lastConvOut)) convEl.fromVal.value = rawNum(lastConvOut);
+  runConvert();
+});
+
+/* ==========================================================================
+   9. PROGRAMMER
+   ========================================================================== */
+
+const progEl = {
+  input: $('#progInput'),
+  tabs:  $('#baseTabs'),
+  hex:   $('#pHex'),
+  dec:   $('#pDec'),
+  oct:   $('#pOct'),
+  bin:   $('#pBin'),
+  bwA:   $('#bwA'),
+  bwOp:  $('#bwOp'),
+  bwB:   $('#bwB'),
+  bwRes: $('#bwRes')
+};
+
+function parseBase(str, base){
+  const s = String(str).trim().replace(/^0[xXoObB]/, '');
+  if (!s) return NaN;
+  const v = parseInt(s, base);
+  return Number.isFinite(v) ? v : NaN;
+}
+
+function updateProg(){
+  const base = state.base;
+  const v = parseBase(progEl.input.value, base);
+  if (Number.isNaN(v)){
+    progEl.hex.textContent = progEl.dec.textContent = '—';
+    progEl.oct.textContent = progEl.bin.textContent = '—';
+  } else {
+    const u = v >>> 0;
+    progEl.hex.textContent = u.toString(16).toUpperCase();
+    progEl.dec.textContent = v.toString(10);
+    progEl.oct.textContent = u.toString(8);
+    progEl.bin.textContent = u.toString(2).replace(/\B(?=(\d{4})+(?!\d))/g, ' ');
+  }
+  updateBitwise();
+}
+
+function updateBitwise(){
+  const a = parseBase(progEl.bwA.value, 10);
+  const b = parseBase(progEl.bwB.value, 10);
+  if (Number.isNaN(a) || Number.isNaN(b)){ progEl.bwRes.textContent = '—'; return; }
+  const op = progEl.bwOp.value;
+  let r;
+  switch (op){
+    case 'and':  r = a & b; break;
+    case 'or':   r = a | b; break;
+    case 'xor':  r = a ^ b; break;
+    case 'nand': r = ~(a & b); break;
+    case 'nor':  r = ~(a | b); break;
+    case 'shl':  r = a << b; break;
+    case 'shr':  r = a >> b; break;
+    default: r = 0;
+  }
+  r = r | 0;
+  progEl.bwRes.textContent = r + '  (0x' + (r >>> 0).toString(16).toUpperCase() + ')';
+}
+
+progEl.input.addEventListener('input', updateProg);
+progEl.bwA.addEventListener('input', updateBitwise);
+progEl.bwB.addEventListener('input', updateBitwise);
+progEl.bwOp.addEventListener('change', updateBitwise);
+progEl.tabs.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-base]');
+  if (!btn) return;
+  state.base = parseInt(btn.dataset.base, 10);
+  [...progEl.tabs.children].forEach(b => b.classList.toggle('active', b === btn));
+  updateProg();
+});
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-copy]');
+  if (!btn) return;
+  const target = document.getElementById(btn.dataset.copy);
+  if (target) copyText(target.textContent.replace(/\s+/g, ''));
+});
+
+/* ==========================================================================
+   10. MODE / THEME
+   ========================================================================== */
+
+function setMode(mode){
+  state.mode = mode;
+  [...el.tabs.children].forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+
+  el.viewCalc.hidden = !(mode === 'standard' || mode === 'scientific');
+  el.viewConv.hidden = mode !== 'converter';
+  el.viewProg.hidden = mode !== 'programmer';
+
+  if (mode === 'standard' || mode === 'scientific'){
+    renderKeypad(mode);
+    update();
+  }
+  if (mode === 'programmer') updateProg();
+  if (mode === 'converter') runConvert();
+  save();
+}
+
+el.tabs.addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (tab) setMode(tab.dataset.mode);
+});
+
+function setTheme(theme){
+  state.theme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  el.themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+  el.themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+  save();
+}
+
+el.themeToggle.addEventListener('click', () => {
+  setTheme(state.theme === 'dark' ? 'light' : 'dark');
+});
+
+/* ==========================================================================
+   11. CHIPS
+   ========================================================================== */
+
+el.chipAngle.addEventListener('click', () => {
+  const order = ['deg', 'rad', 'grad'];
+  state.angle = order[(order.indexOf(state.angle) + 1) % order.length];
+  updateChips();
+  update();
+  save();
+  toast('Angle unit: ' + state.angle.toUpperCase());
+});
+
+el.chipMem.addEventListener('click', () => {
+  if (state.mem === 0){ toast('Memory is empty'); return; }
+  insert(rawNum(state.mem));
+});
+
+el.chipAns.addEventListener('click', () => insert('ans'));
+
+el.chipCopy.addEventListener('click', () => {
+  const txt = state.justEvaluated || !state.expr.trim()
+    ? el.resultLine.textContent
+    : el.resultLine.textContent || '0';
+  copyText(txt.replace(/,/g, ''));
+});
+
+/* ==========================================================================
+   12. UTILITIES
+   ========================================================================== */
+
+let toastTimer = null;
+function toast(msg){
+  el.toast.textContent = msg;
+  el.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.toast.classList.remove('show'), 1600);
+}
+
+function copyText(text){
+  const done = () => toast('Copied: ' + (text.length > 24 ? text.slice(0, 24) + '…' : text));
+  if (navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, cb){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); cb(); } catch (e) { toast('Copy failed'); }
+  document.body.removeChild(ta);
+}
+
+function openHistoryDrawer(){
+  el.historyPanel.classList.add('open');
+  el.scrim.classList.add('show');
+}
+function closeHistoryDrawer(){
+  el.historyPanel.classList.remove('open');
+  el.scrim.classList.remove('show');
+}
+el.histToggle.addEventListener('click', () => {
+  if (el.historyPanel.classList.contains('open')) closeHistoryDrawer();
+  else openHistoryDrawer();
+});
+el.scrim.addEventListener('click', closeHistoryDrawer);
+
+/* ==========================================================================
+   13. KEYBOARD
+   ========================================================================== */
+
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) return;
+  if (state.mode === 'converter' || state.mode === 'programmer') return;
+
+  const k = e.key;
+  const ctrl = e.ctrlKey || e.metaKey;
+
+  if (ctrl && k.toLowerCase() === 'c'){
+    copyText(el.resultLine.textContent.replace(/,/g, ''));
+    return;
+  }
+
+  if (/^[0-9]$/.test(k)){ insert(k); e.preventDefault(); return; }
+  if (k === '.' || k === ','){ insert('.'); e.preventDefault(); return; }
+  if (k === '+'){ insert('+'); e.preventDefault(); return; }
+  if (k === '-'){ insert('−'); e.preventDefault(); return; }
+  if (k === '*'){ insert('×'); e.preventDefault(); return; }
+  if (k === '/'){ insert('÷'); e.preventDefault(); return; }
+  if (k === '^'){ insert('^'); e.preventDefault(); return; }
+  if (k === '%'){ insert('%'); e.preventDefault(); return; }
+  if (k === '!'){ insert('!'); e.preventDefault(); return; }
+  if (k === '('){ insert('('); e.preventDefault(); return; }
+  if (k === ')'){ insert(')'); e.preventDefault(); return; }
+  if (k === 'p' || k === 'P'){ insert('π'); e.preventDefault(); return; }
+  if (k === 'e'){ insert('e'); e.preventDefault(); return; }
+
+  if (k === 'Enter' || k === '='){ equals(); e.preventDefault(); return; }
+  if (k === 'Backspace'){ doAction('back'); e.preventDefault(); return; }
+  if (k === 'Escape' || k === 'Delete'){ doAction('clear'); e.preventDefault(); return; }
+  if (k === 'r' && ctrl) { e.preventDefault(); return; }
+});
+
+/* ==========================================================================
+   14. INIT
+   ========================================================================== */
+
+(function init(){
+  load();
+  setTheme(state.theme || 'dark');
+  renderKeypad(state.mode === 'scientific' ? 'scientific' : 'standard');
+  initConverter();
+  renderHistory();
+  updateProg();
+  setMode(state.mode || 'standard');
+  update();
+  updateChips();
+})();
+</script>
+</body>
+</html>
